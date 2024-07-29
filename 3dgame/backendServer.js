@@ -85,7 +85,7 @@ setInterval(()=>{
     io.emit("updatePlayers", players);
 }, 15);
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 2823;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
