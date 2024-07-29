@@ -1,0 +1,12 @@
+@font-face {
+    font-family: 'Ubuntu';
+    font-style: normal;
+    font-weight: 500;
+    src: url('ubuntu-v20-latin-500.eot');
+    src: local(''),
+         url('ubuntu-v20-latin-500.eot?#iefix') format('embedded-opentype'),
+         url('ubuntu-v20-latin-500.woff2') format('woff2'),
+         url('ubuntu-v20-latin-500.woff') format('woff'),
+         url('ubuntu-v20-latin-500.ttf') format('truetype'),
+         url('ubuntu-v20-latin-500.svg#Ubuntu') format('svg');
+  }
