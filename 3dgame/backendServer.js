@@ -73,7 +73,7 @@ io.on('connection', (socket) => {
             console.log("deleted " + id);
 
         }
-        console.log("ran delete");
+        // console.log("ran delete");
         
     });
 
