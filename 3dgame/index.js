@@ -993,18 +993,21 @@ function checkForAiming(){
         HTMLObj("crosshair").width = "25"*10;
         HTMLObj("crosshair").style.transform = "translate(-50%, -45%)";
         player.lookSpeed = 0.01;
+        player.speed = 2;
     } else if(keys.leftShift && player.gun == "ar"){
         camera.fov = 45;
         camera.lookAt(player.mesh.position.x, player.mesh.position.y+0.8, player.mesh.position.z);
         HTMLObj("crosshair").width = "25"*3;
         HTMLObj("crosshair").style.transform = "translate(-50%, -35%)";
         player.lookSpeed = 0.03;
+        player.speed = 5;
     }else {
         camera.fov = 75;
         camera.lookAt(player.mesh.position);
         HTMLObj("crosshair").width = "25";
         HTMLObj("crosshair").style.transform = "translate(-50%, 0%)";
         player.lookSpeed = 0.05;
+        player.speed = 7;
     }
 }
 
