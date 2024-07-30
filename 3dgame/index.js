@@ -35,6 +35,7 @@ var keys = {
     d: false,
     q: false,
     e: false,
+    leftShift: false,
 }
 var rotationX = -Math.PI/2;
 var rotationY = 0;
@@ -606,7 +607,8 @@ function renderGame() {
         gun: player.gun,
     }));
 
-
+    checkForControllerInputs();
+    
     updateOtherPlayerMovement();
     updateShooting();
     camera.updateProjectionMatrix();
@@ -616,7 +618,7 @@ function renderGame() {
     player.mesh.position.copy(player.body.position);
     player.mesh.quaternion.copy(player.body.quaternion);
     renderGameObjects();
-    camera.lookAt(player.mesh.position);
+    checkForAiming();
     // composer.render();
     renderer.render(scene, camera);
 
@@ -648,6 +650,26 @@ var runOnce = false;
 var runned = false;
 var runnedSuper = false;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 async function delaySuper(delay){
     HTMLObj("superUI").style.background = "linear-gradient(to top, red, red)";
     for(let i = 1; i <=5; i++){
@@ -672,7 +694,9 @@ HTMLObj("shootUI").style.background = 'linear-gradient(to top, green, green)';
     player.canShoot = true;
     runned = false;
 }
-
+function calcCrosshairPos(bulletSpeed){
+    return -0.12 * bulletSpeed + 37 + "%";
+}
 
 HTMLObj("fireRateUpgrade").addEventListener("click", (e) => {
    if(player.fireRate > 100){
@@ -689,37 +713,48 @@ HTMLObj("bulletSpeedUpgrade").addEventListener("click", (e) => {
 HTMLObj("pistol").addEventListener("click", (e) => {
    player.bulletSpeed = 50;
     player.fireRate = 400;
-    consoleLog("Pistol loadout: 400 rate, 50 speed");
+    consoleLog("Pistol: 400 FR | 50 BS");
     HTMLObj("gunUI").innerHTML = "Pistol";
     player.gun = "pistol";
+    HTMLObj("crosshair").style.top = "31%";
+    HTMLObj("crosshair").width = "25";
+
 });
 HTMLObj("ar").addEventListener("click", (e) => {
    player.bulletSpeed = 75;
     player.fireRate = 200;
-    consoleLog("Assault Rifle loadout: 200 rate, 75 speed");
+    consoleLog("AR: 200 FR | 75 BS");
     HTMLObj("gunUI").innerHTML = "AR";
      player.gun = "ar";
+    HTMLObj("crosshair").style.top = "28%";
+    HTMLObj("crosshair").width = "30";
 });
 HTMLObj("smg").addEventListener("click", (e) => {
    player.bulletSpeed = 50;
     player.fireRate = 100;
-    consoleLog("SMG loadout: 100 rate, 50 speed");
+    consoleLog("SMG: 100 FR | 50 BS");
     HTMLObj("gunUI").innerHTML = "SMG";
      player.gun = "smg";
+    HTMLObj("crosshair").style.top = "31%";
+    HTMLObj("crosshair").width = "30";
 });
 HTMLObj("sniper").addEventListener("click", (e) => {
    player.bulletSpeed = 120;
     player.fireRate = 700;
-    consoleLog("Sniper loadout: 700 rate, 120 speed");
+    consoleLog("Sniper: 700 FR | 120 BS");
     HTMLObj("gunUI").innerHTML = "Sniper";
      player.gun = "sniper";
+    HTMLObj("crosshair").style.top = "25%";
+    HTMLObj("crosshair").width = "25";
 });
 HTMLObj("shotgun").addEventListener("click", (e) => {
    player.bulletSpeed = 40;
     player.fireRate = 500;
-    consoleLog("Shotgun loadout: 500 rate, 40 speed");
+    consoleLog("Shotgun: 500 FR | 40 BS");
     HTMLObj("gunUI").innerHTML = "Shotgun";
      player.gun = "shotgun";
+    HTMLObj("crosshair").style.top = "32%";
+    HTMLObj("crosshair").width = "50";
 });
 
 HTMLObj("switchShadow").addEventListener("click", (e) => {
@@ -951,6 +986,27 @@ function createSmallBullet(){
     return bullet;
 }
 
+function checkForAiming(){
+    if(keys.leftShift && player.gun == "sniper"){
+        camera.fov = 15;
+        camera.lookAt(player.mesh.position.x, player.mesh.position.y+1.6, player.mesh.position.z);
+        HTMLObj("crosshair").width = "25"*10;
+        HTMLObj("crosshair").style.transform = "translate(-50%, -45%)";
+        player.lookSpeed = 0.01;
+    } else if(keys.leftShift && player.gun == "ar"){
+        camera.fov = 45;
+        camera.lookAt(player.mesh.position.x, player.mesh.position.y+0.8, player.mesh.position.z);
+        HTMLObj("crosshair").width = "25"*3;
+        HTMLObj("crosshair").style.transform = "translate(-50%, -35%)";
+        player.lookSpeed = 0.03;
+    }else {
+        camera.fov = 75;
+        camera.lookAt(player.mesh.position);
+        HTMLObj("crosshair").width = "25";
+        HTMLObj("crosshair").style.transform = "translate(-50%, 0%)";
+        player.lookSpeed = 0.05;
+    }
+}
 
 
 
@@ -1052,7 +1108,7 @@ var normalize = 1;
         velocity.add(forwardVector.clone().multiplyScalar(player.speed*5));
     }
 
-    if(keys.upArrow && !player.sprinting && player.canSprint){
+    if(keys.upArrow && !player.sprinting && player.canSprint && !keys.leftShift){
         player.canSprint = false;
         player.sprinting = true;
         cameraOutTween.start();
@@ -1515,8 +1571,11 @@ function animate(delta) {
     stats.end();
 }
 
-startAnimating(60);
 
+ startAnimating(60);
+
+
+// }
 function consoleLog(text){
     HTMLObj("console").innerHTML = "> " + text + "<br>" + HTMLObj("console").innerHTML;
 }
@@ -1562,6 +1621,9 @@ addEventListener('keydown', function(event) {
     if(key == " "){
         player.jumping = true;
     }
+    if(key == "shift"){
+        keys.leftShift = true;
+    }
 });
 
 addEventListener('keyup', function(event) {
@@ -1600,7 +1662,75 @@ addEventListener('keyup', function(event) {
     if(key == " "){
         player.jumping = false;
     }
+    if(key == "shift"){
+        keys.leftShift = false;
+    }
 });
+
+function checkForControllerInputs(){
+    const controller = navigator.getGamepads()[0];
+    if(controller){
+        const leftJoystickX = controller.axes[0]; 
+        const leftJoystickY = controller.axes[1]; 
+        const rightJoystickX = controller.axes[2]; 
+        const buttonA = controller.buttons[0].pressed; 
+        const buttonY = controller.buttons[3].pressed; 
+        const aimTrigger = controller.buttons[6].pressed; 
+        const shootTrigger = controller.buttons[7].pressed; 
+        const leftJoystickPress = controller.buttons[10].pressed; 
+        if(leftJoystickPress){
+            keys.upArrow = true;
+        } else if(!leftJoystickPress){
+            keys.upArrow = false;
+        }
+        if(shootTrigger){
+            keys.q = true;
+        } else if(!shootTrigger){
+            keys.q = false;
+        }
+        if(buttonY){
+            keys.e = true;
+        } else if(!buttonY){
+            keys.e = false;
+        }
+        if(buttonA){
+            player.jumping = true;
+        } else if(!buttonA){
+            player.jumping = false;
+        }
+        if(aimTrigger){
+            keys.leftShift = true;
+        } else if(!aimTrigger){
+            keys.leftShift = false;
+        }
+
+        var deadZone = 0.25;
+        if(leftJoystickX >= deadZone){
+            keys.d = true;
+        } else if(leftJoystickX <= -deadZone){
+            keys.a = true;
+        } else if(leftJoystickX < deadZone || leftJoystickX > -deadZone){
+            keys.a = false;
+            keys.d = false;
+        }
+        if(leftJoystickY >= deadZone){
+            keys.s = true;
+        } else if(leftJoystickY <= -deadZone){
+            keys.w = true;
+        } else if(leftJoystickY < deadZone || leftJoystickY > -deadZone){
+            keys.s = false;
+            keys.w = false;
+        }
+        if(rightJoystickX >= deadZone){
+            keys.rightArrow = true;
+        } else if(rightJoystickX <= -deadZone){
+            keys.leftArrow = true;
+        } else if(rightJoystickX < deadZone || rightJoystickX > -deadZone){
+            keys.rightArrow = false;
+            keys.leftArrow = false;
+        }
+    }
+}
 
 function downtime(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

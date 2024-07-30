@@ -1,25 +1,54 @@
 <!DOCTYPE html>
 	<html lang="en">
-	<meta charset="UTF-8">
-	<title>Cube PVP</title>
-	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<link rel="stylesheet" href="fonts/ubuntu.css">
-	<link rel="stylesheet" href="bootstrap.min.css">
-	<style>
-		html, body {
-  font-family:Ubuntu;
-  margin: 0; 
-  height: 100; 
-  position:fixed;
-  overflow: hidden;
-  
- -webkit-user-select: none; /* Safari */
-  -ms-user-select: none; /* IE 10 and IE 11 */
-  user-select: none; /* Standard syntax */
-  
-}
-	</style>
+	<head>
+		<meta charset="UTF-8">
+		<title>Cube PVP</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1">
+		<link rel="stylesheet" href="fonts/ubuntu.css">
+		<link rel="stylesheet" href="bootstrap.min.css">
+		<style>
+			html, body {
+				font-family:Ubuntu;
+				margin: 0; 
+				height: 100; 
+				position:fixed;
+				overflow: hidden;
+				
+				-webkit-user-select: none; /* Safari */
+				-ms-user-select: none; /* IE 10 and IE 11 */
+				user-select: none; /* Standard syntax */
+				
+			}
+			#loadingPage {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 50%;
+				left: 50%;
+				transform:translate(-50%, -50%);
+				background-color: #FFFFFF;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				flex-direction: column;
+				z-index: 1000;
+				font-size:50px;
+        	}	
+		</style>
+		<script>
+			document.onreadystatechange = function () {
+				if (document.readyState === 'complete') {
+					document.getElementById("loadingPage").style.visibility = 'hidden';
+					document.getElementById("loadingPage").style.display = 'none';
+				} else {
+					document.getElementById("loadingPage").style.visibility = 'visibile';
+					document.getElementById("loadingPage").style.display = 'flex';
+				}
+			}
+		</script>
+	</head>
 	<body>
+	<div id="loadingPage">LOADING...</div>
 		<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     	<script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
 		<script src="https://unpkg.com/@tweenjs/tween.js@^20.0.0/dist/tween.umd.js"></script>
@@ -31,13 +60,14 @@
 				}
 			}
 		</script>
+		<img src="assets/crosshair.png" width="25px" style="image-rendering: pixelated;position:absolute; left:50%; top:31%; transform:translate(-50%, 0%);" id="crosshair">
     	<p style="position:absolute; left:100px; color:white; font-size:15px;" id="bulletPoolCount">BulletPool:</p>
 
 <p style="position:absolute; left:220px; color:white; font-size:25px;" id="highScore">HS:</p>
 <p style="position:absolute; left:350px; color:white; font-size:25px;" id="score">SCORE:</p>
-		<p style="position:absolute; top:50px; background-color:rgba(255, 255, 255, 0.5); font-family:Ubuntu;">GAME CONSOLE: <br><span id = "console"></span></p>
+		<p style="position:absolute; top:50px; background-color:rgba(255, 255, 255, 0.5); font-family:Ubuntu; width:200px;">GAME CONSOLE: <br><span id = "console"></span></p>
 
-		<p style="position:absolute; right:2%; color:white; font-family:Ubuntu;">Controls:<br>WASD - Movement<br>Left/Right Arrow - Look<br>Up Arrow - Dash<br>Q - Shoot<br>E - Super</p>
+		<p style="position:absolute; right:2%; color:white; font-family:Ubuntu;">Controls:<br>WASD/Joystick - Movement<br>Space/A - Jump<br>Arrow Keys(L/R)/Joystick - Look<br>Up Arrow/Left Joystick - Dash<br>Q/Right Trigger - Shoot<br>Shift/Left Trigger - Aim<br>E/Y - Super</p>
 	   
 		<div style="position:absolute; right:2%; bottom:2%; color:white; font-size:20px; display:flex;">
 		<div style="width:100px; height:100px; background-color:black; margin-right:10px;" id = "gunUI" class="border border-primary border-5 text-center pt-1"><b>Pistol</b></div>
@@ -71,7 +101,7 @@
 			<p id="sniper" class="btn btn-light border-dark border-5">Sniper</p>
 			<p id="shotgun" class="btn btn-light border-dark border-5">Shotgun</p>
 		</div>
-		<script type="module" src="index.js?version=0.4.7"></script>
+		<script type="module" src="index.js?version=0.5.7"></script>
 	</body>
 </html>
 
@@ -90,6 +120,7 @@
 0.3.6 buffed AR range, added shotgun, removed bug where grass had shadow when pressing on shadows on and off. changed sky color to blue
 0.3.7 fixed bug wit jumping midair. set vel of player to 0 when you die to prevent flying into the air.
 0.4.7 made it MULTIPLAYER! lots of bug fixes and stuff, added walls using crates (plan to change to wall texture), made a new area for enemies to spawn and players can practice pvp there. changed shotgun shot spread to be the same, changed super speed to 75. made it so players respawn if Y above 15 and Y below 10, and when killed by enemy. Bullets do not hurt people if they are not in the pvp box.
+0.5.7 added a crosshair, added controller support, added aiming, shrinked console.
  -->
 
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
