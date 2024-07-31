@@ -1328,6 +1328,9 @@ function updateEnemyMovement(){
 
         enemy.mesh.position.copy(enemy.body.position);
         enemy.body.quaternion.copy(enemy.mesh.quaternion);        
+        if(enemy.mesh.position.x < 43) {
+            killEnemy(enemy);
+        }
     })
 }
 
