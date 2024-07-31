@@ -1524,8 +1524,8 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
                 otherPlayers[id].body.position.y = -8;
                 otherPlayers[id].body.position.z = 0;
                 playerNameTags[id].position.x = 0;
-                playerNameTags[id].position.z = -8;
-                playerNameTags[id].position.y = 0;
+                playerNameTags[id].position.z = 0;
+                playerNameTags[id].position.y = -8;
             }
         }
     }
