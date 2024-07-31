@@ -11,6 +11,7 @@ const io = socketIo(server, {pingInterval: 2000, pingTimeout:5000});
 app.use(express.static(__dirname));
 
 var players = {}
+
 var bulletID = 0;
 
 
@@ -64,6 +65,7 @@ io.on('connection', (socket) => {
             y: players[socket.id].position.y,
             z: players[socket.id].position.z,
             quaternion: players[socket.id].quaternion,
+            id: socket.id,
         }))
     });
 

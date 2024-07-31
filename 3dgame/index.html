@@ -65,10 +65,15 @@
 
 <p style="position:absolute; left:220px; color:white; font-size:25px;" id="highScore">HS:</p>
 <p style="position:absolute; left:350px; color:white; font-size:25px;" id="score">SCORE:</p>
-		<p style="position:absolute; top:50px; background-color:rgba(255, 255, 255, 0.5); font-family:Ubuntu; width:200px; height:350px; overflow:hidden;">GAME CONSOLE: <br><input style="width:180px; margin-left:10px;" id="consoleInput" placeholder="Variable Name"><br><span id = "console"></span></p>
+		<p style="position:absolute; top:50px; background-color:rgba(255, 255, 255, 0.5); font-family:Ubuntu; width:200px; height:350px; overflow:hidden; display:none;" id="consoleDiv">GAME CONSOLE: <br><input style="width:180px; margin-left:10px;" id="consoleInput" placeholder="Variable Name"><br><span id = "console"></span></p>
 
-		<p style="position:absolute; right:2%; color:white; font-family:Ubuntu;">Controls:<br>WASD/Joystick - Movement<br>Space/A - Jump<br>Arrow Keys(L/R)/Joystick - Look<br>Up Arrow/Left Joystick - Dash<br>Q/Right Trigger - Shoot<br>Numbers/LB RB - Next Gun<br>Shift/Left Trigger - Aim<br>E/Y - Super</p>
-	   
+		<div style="position:absolute; right:2%; top:2%;">
+		<p id="switchConsole" class="btn btn-info border-dark border-5">CONSOLE</p>
+		<p id="switchControls" class="btn btn-info border-dark border-5">CONTROLS</p>
+		<p id="switchPerformance" class="btn btn-info border-dark border-5">GRAPHICS - <b><span id="graphicsValue">ULTRA HIGH</span></b></p>
+		<br>
+			<p style="color:white; font-family:Ubuntu; display:none; width:300px;" id = "controlsText"><u><b>Controls: (KBM | Controller)</b></u><br><b>Movement</b> - WASD | L Joystick<br><b>Jump</b> - Space | A<br><b>Look</b> - Arrow Keys | R Joystick<br><b>Dash</b> - Up Arrow | LS<br><b>Shoot</b> - Q | RT<br><b>Change Gun</b> - Numbers | LB/RB<br><b>Aim</b> - Shift | LT<br><b>Super</b> - E | Y</p>
+	   </div>
 		<div style="position:absolute; right:2%; bottom:2%; color:white; font-size:20px; display:flex;">
 		<div style="width:100px; height:100px; background-color:black; margin-right:10px;" id = "gunUI" class="border border-primary border-5 text-center pt-1"><b>Pistol</b></div>
 
@@ -86,12 +91,17 @@
 
 		</div>
 		<div style="position:absolute; bottom:1%; left:1%;">
-		<p id="switchAnim" class="btn btn-primary border-dark border-5">Anims ON</p>
+		
+			<div style="display:none;" id="debugTools">
+			<p id="switchAnim" class="btn btn-primary border-dark border-5">Anims ON</p>
 		<p id="switchShadow" class="btn btn-primary border-dark border-5">Shadows ON</p>
+		<p id="switchGrass" class="btn btn-primary border-dark border-5">GRASS ON</p>
 		<br>
-			<p id="fireRateUpgrade" class="btn btn-danger border-dark border-5">Upgrade Fire Rate</p>
-			
-			<p id="bulletSpeedUpgrade" class="btn btn-danger border-dark border-5">Upgrade Bullet Speed</p>
+				<p id="fireRateUpgrade" class="btn btn-danger border-dark border-5">Upgrade Fire Rate</p>
+				
+				<p id="bulletSpeedUpgrade" class="btn btn-danger border-dark border-5">Upgrade Bullet Speed</p>
+			</div>
+
 			<br>
 			<p id="pistol" class="btn btn-light border-dark border-5">Pistol</p>
 	
@@ -101,7 +111,7 @@
 			<p id="sniper" class="btn btn-light border-dark border-5">Sniper</p>
 			<p id="shotgun" class="btn btn-light border-dark border-5">Shotgun</p>
 		</div>
-		<script type="module" src="index.js?version=0.6.8"></script>
+		<script type="module" src="index.js?version=0.7.9"></script>
 	</body>
 </html>
 
@@ -124,6 +134,7 @@
 0.5.8 made you slower when aiming
 0.6.8 made console smaller. ADDED SHADOWS TO GRASS FINALLY!! added it so other players cause grass to stop moving. You can now change guns with numbers or LB/RB on controller. made it so current gun lights up button.
 0.6.9 made console even shorter to fit on smaller computers.
+0.7.9 ADDED 3D TEXT! Made players not be able to shoot unless they are in the playing field. remove the anims, and upgrade firerate button (only shown in development) Added a graphics button to switch from low to ultra high graphics. Added a controls button to show controls, and a console button to show console. made camera not clip into walls! crosshair is 0.5 opacity when in wall. Moved the "sun" higher up, to simulate midday. fixed a bug where buttons didnt work. Players now disappear when enterring the practice zone, this makes the practice zone separate for each player.. Added name tags that face the camera!
  -->
 
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>

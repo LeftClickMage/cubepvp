@@ -4,6 +4,8 @@ import * as CANNON from "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js";
 import CannonDebugger from 'https://cdn.jsdelivr.net/npm/cannon-es-debugger@1.0.0/+esm';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import Stats from 'https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js';
 // import {RenderPass} from "three/addons/postprocessing/RenderPass";
 // import {EffectComposer} from "three/addons/postprocessing/EffectComposer";
@@ -40,10 +42,12 @@ var keys = {
 var rotationX = -Math.PI/2;
 var rotationY = 0;
 var yAxis = new CANNON.Vec3(0, 1, 0);
+var xAxis = new CANNON.Vec3(1, 0, 0);
+var zAxis = new CANNON.Vec3(0, 0, 1);
 var anim = true;
 var noFrictionMaterial = new CANNON.Material();
 var shadowsOn = true;
-
+var degreeToRadian = Math.PI/180;
 
 
 
@@ -59,13 +63,12 @@ var shadowsOn = true;
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 var light = new THREE.DirectionalLight(0xfff7e0, 10);
-light.position.set(50, 40, 10);
+light.position.set(50, 80, 10);
 
 increaseLightShadowRange(light, 100, 2048);
-
 var light2 = new THREE.AmbientLight(0xF0F0F0);
 
-scene.add(light, light2);
+scene.add(light2, light);
 
 const stats = new Stats();
 stats.showPanel(0); // 0: fps, 1: ms, 2: memory
@@ -298,6 +301,9 @@ var player = {
     highScore: 0,
 }
 addToWorld(player);
+
+
+
 var contactNormal = new CANNON.Vec3(); 
 var upAxis = new CANNON.Vec3( 0, 1, 0 );
 player.body.addEventListener( "collide", function (e) {
@@ -324,6 +330,144 @@ player.body.addEventListener( "collide", function (e) {
     });
     
 });
+
+
+const loader = new FontLoader();
+
+
+function createText({x, y, z, fontSize, color, rotateX, rotateY, rotateZ, textValue, displacementFactor, displaceFor}){
+    loader.load('fonts/helvetica.typeface.json', function (font) {
+        const text = new THREE.Mesh(
+            new TextGeometry(textValue, {
+                font: font,
+                size: fontSize,
+                height: fontSize/10,
+                curveSegments: 1,
+                bevelEnabled: true,
+                bevelThickness: fontSize/30,
+                bevelSize: fontSize/30,
+                bevelOffset: 0,
+                bevelSegments: 5,
+            }), 
+            new THREE.MeshStandardMaterial({
+                color: color 
+            })
+        );
+        text.geometry.computeBoundingBox();
+        const width = text.geometry.boundingBox.max.x - text.geometry.boundingBox.min.x;
+        if(displaceFor == "x"){
+            text.position.set(x + width/2*displacementFactor, y, z);
+        }else if(displaceFor == "y"){
+            text.position.set(x, y + width/2*displacementFactor, z);
+        } else if(displaceFor == "z"){
+            text.position.set(x, y, z + width/2*displacementFactor);
+        }
+        
+        text.castShadow = true;
+        text.receiveShadow = true;
+        text.rotation.set(rotateX * degreeToRadian, rotateY * degreeToRadian, rotateZ * degreeToRadian);
+        scene.add(text);
+    });
+}
+
+
+// Golden Oak (#DAA520)
+// Light Oak (#D2B48C)
+// Sandy Brown (#F4A460)
+// Burlywood (#DEB887)
+createText({
+    x: 34,
+    y: 10, 
+    z: 23,
+    color: 0xFFFFFF,
+    fontSize: 3,
+    rotateY: 180,
+    rotateX: 0,
+    rotateZ: 0,
+    textValue: "CUBE PVP",
+    displacementFactor: 1,
+    displaceFor: "x",
+});
+
+
+
+createText({
+    x: 34,
+    y: 10, 
+    z: -23,
+    color: 0xFFFFFF,
+    fontSize: 3,
+    rotateY: 0,
+    rotateX: 0,
+    rotateZ: 0,
+    textValue: "CUBE PVP",
+    displacementFactor: -1,
+    displaceFor: "x",
+});
+
+createText({
+    x: 23,
+    y: 9, 
+    z: 0,
+    color: 0xFF0000,
+    fontSize: 1,
+    rotateY: 90,
+    rotateX: 0,
+    rotateZ: 0,
+    textValue: "PVP ZONE",
+    displacementFactor: 1,
+    displaceFor: "z",
+});
+
+createText({
+    x: 23+22,
+    y: 9, 
+    z: 0,
+    color: 0x00FF00,
+    fontSize: 1,
+    rotateY: 270,
+    rotateX: 0,
+    rotateZ: 0,
+    textValue: "PRACTICE ZONE",
+    displacementFactor: -1,
+    displaceFor: "z",
+});
+
+
+function createPlayerNameTags({x, y, z, fontSize, color, rotateX, rotateY, rotateZ, textValue, id}){
+    loader.load('fonts/helvetica.typeface.json', function (font) {
+        const text = new THREE.Mesh(
+            new TextGeometry(textValue, {
+                font: font,
+                size: fontSize,
+                height: fontSize/10,
+                curveSegments: 1,
+                bevelEnabled: true,
+                bevelThickness: fontSize/30,
+                bevelSize: fontSize/30,
+                bevelOffset: 0,
+                bevelSegments: 5,
+            }), 
+            new THREE.MeshStandardMaterial({
+                color: color 
+            })
+        );
+        
+    
+        text.castShadow = true;
+        text.receiveShadow = true;
+        text.rotation.set(rotateX * degreeToRadian, rotateY * degreeToRadian, rotateZ * degreeToRadian);
+        scene.add(text);
+        playerNameTags[id] = text;
+    });
+}
+
+
+var playerNameTags = {};
+
+
+
+
 
 var ground = {
     mesh: new THREE.Mesh(
@@ -595,8 +739,21 @@ HTMLObj("dashUI").style.background = "linear-gradient(to top, green, green)";
 
 
 
-
-
+// var atWall = false;
+function cameraPosition(){
+    // var distanceToWall = camera
+    // if(camera.position.x < -24) {
+    //     atWall = true;
+    //     setCameraPosition(Math.abs(Math.abs(camera.position.x) - 25));
+    // } else if (!atWall) {
+        setCameraPosition(5);
+    // }
+    // if(atWall){
+    //     if(camera.position.x > -22){
+    //         atWall = false;
+    //     }
+    // }
+}
 
 var grassUpdateVal = 0;
 //// GAME RENDER ////
@@ -618,10 +775,12 @@ function renderGame() {
 
     
 
-
-    setCameraPosition(5);
+    cameraPosition();
+    // setCameraPosition(5);
     
     updateEnemyMovement();
+    
+    
     updateMovement();
     socket.emit("updateMovement", ({
         x: player.body.position.x,
@@ -725,7 +884,50 @@ function calcCrosshairPos(bulletSpeed){
     return -0.12 * bulletSpeed + 37 + "%";
 }
 
-HTMLObj("fireRateUpgrade").addEventListener("click", (e) => {
+HTMLObj("switchPerformance").addEventListener("click", (e) => {
+    var currentGraphicsValue = HTMLObj("graphicsValue").innerHTML;
+    if(currentGraphicsValue == "ULTRA HIGH"){
+        currentGraphicsValue = "LOW";
+        grassShadows = false;
+        grassShadowsChanger();
+        shadowsOn = false;
+        shadows(shadowsOn);
+        
+        anim = false;
+    } else if(currentGraphicsValue == "MED"){
+        currentGraphicsValue = "HIGH";
+        
+        shadowsOn = true;
+        shadows(shadowsOn);
+        grassShadows = false;
+        grassShadowsChanger();
+        grass.receiveShadow = true;
+        anim = true;
+    } else if(currentGraphicsValue == "LOW"){
+        currentGraphicsValue = "MED";
+        
+        shadowsOn = true;
+        shadows(shadowsOn);
+        grassShadows = false;
+        grassShadowsChanger();
+        grass.receiveShadow = false;
+        anim = true;
+    } else if(currentGraphicsValue == "HIGH"){
+        currentGraphicsValue = "ULTRA HIGH";
+        grassShadows = true;
+        grassShadowsChanger();
+        shadowsOn = true;
+        shadows(shadowsOn);
+        anim = true;
+    }
+    
+    HTMLObj("graphicsValue").innerHTML = currentGraphicsValue;
+});
+
+
+if(window.location.hostname == "localhost"){
+    HTMLObj("debugTools").style.display="inline-block";
+    HTMLObj("fireRateUpgrade").addEventListener("click", (e) => {
    if(player.fireRate > 100){
         player.fireRate -= 50;
     }
@@ -737,6 +939,7 @@ HTMLObj("bulletSpeedUpgrade").addEventListener("click", (e) => {
     }
     consoleLog("bullet speed: " + player.bulletSpeed);
 });
+}
 
 function switchGunTo(gun){
     if (gun == "pistol" && player.gun !== "pistol"){
@@ -780,20 +983,59 @@ function switchGunTo(gun){
 
 
 HTMLObj("pistol").addEventListener("click", (e) => {
-    switchGunTo("pistol");
+    gunNumber = 1;
 });
 HTMLObj("ar").addEventListener("click", (e) => {
-   switchGunTo("ar");
+   gunNumber = 3;
 });
 HTMLObj("smg").addEventListener("click", (e) => {
-   switchGunTo("smg");
+   gunNumber = 2;
 });
 HTMLObj("sniper").addEventListener("click", (e) => {
-   switchGunTo("sniper");
+   gunNumber = 4;
 });
 HTMLObj("shotgun").addEventListener("click", (e) => {
-    switchGunTo("shotgun");
+    gunNumber = 5;
 });
+
+
+
+var grassShadows = true;
+function grassShadowsChanger(){
+    grass.castShadow = grassShadows;
+}
+
+function addButtonListener(buttonID, objectID, type){
+    HTMLObj(buttonID).addEventListener("click", (e) => {
+        if(HTMLObj(objectID).style.display == type){
+            HTMLObj(objectID).style.display = "none";
+        } else {
+            HTMLObj(objectID).style.display = type;
+        }
+    });
+}
+
+
+
+HTMLObj("switchGrass").addEventListener("click", (e) => {
+    grassShadows = !grassShadows;
+    grassShadowsChanger();
+
+
+    if(grassShadows){
+        HTMLObj("switchGrass").innerHTML = "Grass ON";
+    } else if(!grassShadows){
+        HTMLObj("switchGrass").innerHTML = "Grass OFF";
+    }
+  
+});
+
+addButtonListener("switchConsole", "consoleDiv", "inline-block");
+addButtonListener("switchControls", "controlsText", "inline-block");
+
+
+// document.getElementById('controlsText').style.display = 'flex';
+
 
 HTMLObj("switchShadow").addEventListener("click", (e) => {
     shadowsOn = !shadowsOn;
@@ -827,6 +1069,7 @@ HTMLObj("consoleInput").addEventListener("keydown", (event)=>{
 //// SHOOTING ////
 var bullets = new Set();
 var bulletPool = [];
+var inPlayingField = false;
 async function updateShooting(){
     bullets.forEach((bullet, index)=>{
         if(bullet.body.position.y < -10 || bullet.body.velocity.length()< 0.25){
@@ -841,11 +1084,16 @@ async function updateShooting(){
         bullet.mesh.quaternion.copy(bullet.body.quaternion);
         
     });
-    if(keys.q && player.canShoot){
+    if(player.mesh.position.x < 45 && player.mesh.position.x > 23 && player.mesh.position.y > 5){
+        inPlayingField = false;
+    } else {
+        inPlayingField = true;
+    }
+    if(keys.q && player.canShoot && inPlayingField){
         player.canShoot = false;
         shoot();
     }
-    if(keys.e && player.canSuper){
+    if(keys.e && player.canSuper && inPlayingField){
         player.canSuper = false;
         shootSuper();
     }
@@ -874,8 +1122,11 @@ function createBullet(x, z, width, height, playerX, playerY, playerZ, quaternion
     bullet.playerID = 1;
 
 }
-socket.on("playerSupered", ({x, y, z, quaternion})=>{
-    var superBulletSize = 0.05;
+socket.on("playerSupered", ({x, y, z, quaternion, id})=>{
+    if(id !== socket.id && x>44){
+
+    } else {
+        var superBulletSize = 0.05;
     createBullet(1, 0.75, superBulletSize, superBulletSize, x, y, z, quaternion);
     createBullet(-1, 0.75, superBulletSize, superBulletSize, x, y, z, quaternion);
     createBullet(-1, -0.75, superBulletSize, superBulletSize, x, y, z, quaternion);
@@ -894,6 +1145,8 @@ socket.on("playerSupered", ({x, y, z, quaternion})=>{
     createBullet(0, 1, superBulletSize, superBulletSize, x, y, z, quaternion);
     createBullet(-1, 0, superBulletSize, superBulletSize, x, y, z, quaternion);
     createBullet(0, -1, superBulletSize, superBulletSize, x, y, z, quaternion);
+    }
+    
 })
 function shootSuper(){
     socket.emit("shotSuper");
@@ -1152,9 +1405,12 @@ var normalize = 1;
 
 function updateOtherPlayerMovement(){
     for (var id in otherPlayers){
-        otherPlayers[id].body.angularFactor.set(0, 0, 0);
-        otherPlayers[id].mesh.position.copy(otherPlayers[id].body.position);
-        otherPlayers[id].mesh.quaternion.copy(otherPlayers[id].body.quaternion);
+
+            otherPlayers[id].body.angularFactor.set(0, 0, 0);
+            otherPlayers[id].mesh.position.copy(otherPlayers[id].body.position);
+            otherPlayers[id].mesh.quaternion.copy(otherPlayers[id].body.quaternion);
+        
+        
     }
 }
 
@@ -1199,6 +1455,20 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
                 leavesID: amountOfOtherPlayers+1,
 
             }
+
+            createPlayerNameTags({
+                x: otherPlayer.position.x,
+                y: otherPlayer.position.y, 
+                z: otherPlayer.position.z,
+                color: 0xFFFFFF,
+                fontSize: 0.3,
+                rotateY: 180,
+                rotateX: 0,
+                rotateZ: 0,
+                textValue: "Quest",
+                id: id,
+            });
+
             otherBullets[id] = {};
             addToWorld(otherPlayers[id]);
             amountOfOtherPlayers++;
@@ -1206,36 +1476,56 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
             // consoleLog(amountOfOtherPlayers);
         } else {
             // consoleLog("uipdated")
-            otherPlayers[id].body.position.x = otherPlayer.position.x;
-            otherPlayers[id].body.position.y = otherPlayer.position.y;
-            otherPlayers[id].body.position.z = otherPlayer.position.z;
-            otherPlayers[id].body.quaternion.copy(otherPlayer.quaternion);
-            if(!leavesOccupied[otherPlayers[id].leavesID - 1]){
-                leavesOccupied[otherPlayers[id].leavesID - 1] = true;
-                leavesOccupied[otherPlayers[id].leavesID] = false;
-                otherPlayers[id].leavesID--;
-            }
-            leavesPositions.value[otherPlayers[id].leavesID].copy(otherPlayers[id].mesh.position);
+            if(otherPlayer.position.x < 44){
+                otherPlayers[id].body.position.x = otherPlayer.position.x;
+                otherPlayers[id].body.position.y = otherPlayer.position.y;
+                otherPlayers[id].body.position.z = otherPlayer.position.z;
+                otherPlayers[id].body.quaternion.copy(otherPlayer.quaternion);
+            
+                    playerNameTags[id].position.copy(otherPlayers[id].mesh.position);
+                    playerNameTags[id].geometry.computeBoundingBox();
+                    const width = playerNameTags[id].geometry.boundingBox.max.x - playerNameTags[id].geometry.boundingBox.min.x;
+                    playerNameTags[id].position.x += width/2 * forwardVector.z;
+                    playerNameTags[id].position.z += width/2 * -forwardVector.x;
+                    playerNameTags[id].position.y += 1;
+                    playerNameTags[id].lookAt(camera.position);
+                
 
-            var virtualBulletArray = otherPlayer.bullets;
-            for (var bullet_id in virtualBulletArray){
-                var virtualBullet = virtualBulletArray[bullet_id];
-                if(!otherBullets[id][bullet_id]){
-                    otherBullets[id][bullet_id] = {exists: true}
 
-                    shootOtherPlayerBullet({
-                        x: otherPlayer.position.x,
-                        y: otherPlayer.position.y,
-                        z: otherPlayer.position.z,
-                        forwardVector: otherPlayer.forwardVector,
-                        bulletSpeed: calculateOtherPlayerBulletSpeed(otherPlayer.gun),
-                        bullet_id: bullet_id,
-                        player_id: id,
-                        quaternion: otherPlayer.quaternion,
-                        gun: otherPlayer.gun,
-                    });
+                if(!leavesOccupied[otherPlayers[id].leavesID - 1]){
+                    leavesOccupied[otherPlayers[id].leavesID - 1] = true;
+                    leavesOccupied[otherPlayers[id].leavesID] = false;
+                    otherPlayers[id].leavesID--;
                 }
+                leavesPositions.value[otherPlayers[id].leavesID].copy(otherPlayers[id].mesh.position);
 
+                var virtualBulletArray = otherPlayer.bullets;
+                for (var bullet_id in virtualBulletArray){
+                    var virtualBullet = virtualBulletArray[bullet_id];
+                    if(!otherBullets[id][bullet_id]){
+                        otherBullets[id][bullet_id] = {exists: true}
+
+                        shootOtherPlayerBullet({
+                            x: otherPlayer.position.x,
+                            y: otherPlayer.position.y,
+                            z: otherPlayer.position.z,
+                            forwardVector: otherPlayer.forwardVector,
+                            bulletSpeed: calculateOtherPlayerBulletSpeed(otherPlayer.gun),
+                            bullet_id: bullet_id,
+                            player_id: id,
+                            quaternion: otherPlayer.quaternion,
+                            gun: otherPlayer.gun,
+                        });
+                    }
+
+                }
+            } else {
+                otherPlayers[id].body.position.x = 0;
+                otherPlayers[id].body.position.y = -8;
+                otherPlayers[id].body.position.z = 0;
+                playerNameTags[id].position.x = 0;
+                playerNameTags[id].position.z = -8;
+                playerNameTags[id].position.y = 0;
             }
         }
     }
@@ -1244,7 +1534,8 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
             destroyObject(otherPlayers[id]);
             leavesOccupied[amountOfOtherPlayers] = false;
             amountOfOtherPlayers--;
-
+            removeMesh(playerNameTags[id]);
+            delete playerNameTags[id];
             delete otherPlayers[id];
         }
     }
@@ -1260,6 +1551,12 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
 
 
 //// EXTRA FUNCTIONS ////
+function removeMesh(mesh){
+    scene.remove(mesh);
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+}
+
 async function respawnPlayer(){
     await downtime(100);
     player.body.velocity.set(0, 0, 0);
@@ -1499,7 +1796,7 @@ function increaseLightShadowRange(light, amount, shadowQuality){
     light.shadow.mapSize.width = shadowQuality;
     light.shadow.mapSize.height = shadowQuality;
 }
-var inWall = false;
+var atWall = false;
 function setCameraPosition(distance){
     if(keys.rightArrow){
         rotationX += player.lookSpeed;
@@ -1507,22 +1804,49 @@ function setCameraPosition(distance){
     if(keys.leftArrow){
         rotationX -= player.lookSpeed;
     }
+
     var offsetX = Math.sin(-rotationX) * distance;
     var offsetY = Math.sin(rotationY) * distance;
     var offsetZ = Math.cos(-rotationX) * distance;
-    // if(camera.position.z < 23 && camera.position.z >= -23 && !inWall){
-    // camera.position.set(camera.position.x, player.mesh.position.y + offsetY + 2.5, player.mesh.position.z + offsetZ);
-    // } else {
-    //     inWall = true;
-    //     camera.position.z = -23;
-    // }
-    // if(player.body.position.z > -18){
-    //     inWall = false;
-    // }
-    //  if(camera.position.x > -24){
-    // camera.position.set(player.mesh.position.x + offsetX, player.mesh.position.y + offsetY + 2.5, camera.position.z);
-    // }
-camera.position.set(player.mesh.position.x + offsetX, player.mesh.position.y + offsetY + 2.5, player.mesh.position.z + offsetZ);
+    if(camera.position.x < -23.5 || (camera.position.x > 23.5 && player.mesh.position.x < 24 && player.mesh.position.y < 6)){
+        if(camera.position.x > 23.6){
+            camera.position.x = 23.5001;
+        } else if(camera.position.x < -23.6){
+            camera.position.x = -23.5001;
+        }
+        if(Math.abs(player.mesh.position.x) + Math.abs(offsetX) > 23.5){
+            atWall = true;
+            camera.position.set(camera.position.x, player.mesh.position.y + offsetY+2.5, camera.position.z);
+        } else {
+             camera.position.set(player.mesh.position.x + offsetX, player.mesh.position.y + offsetY + 2.5, camera.position.z);
+        }
+    } else {
+        atWall = false;
+        camera.position.set(player.mesh.position.x + offsetX, player.mesh.position.y + offsetY + 2.5, camera.position.z);
+    }
+
+    if(Math.abs(camera.position.z) > 23.5){
+        if(camera.position.z > 23.6){
+            camera.position.z = 23.5001;
+        } else if(camera.position.z < -23.6){
+            camera.position.z = -23.5001;
+        }
+
+        if(Math.abs(player.mesh.position.z) + Math.abs(offsetZ) > 23.5){
+            atWall = true;
+            camera.position.set(camera.position.x, player.mesh.position.y + offsetY+2.5, camera.position.z);
+        } else {
+             camera.position.set(camera.position.x, player.mesh.position.y + offsetY + 2.5, player.mesh.position.z + offsetZ);
+        }
+    }else {
+        
+             camera.position.set(camera.position.x, player.mesh.position.y + offsetY + 2.5, player.mesh.position.z + offsetZ);
+        }
+    if (atWall){
+        HTMLObj("crosshair").style.opacity = 0.5;
+    } else if (!atWall){
+        HTMLObj("crosshair").style.opacity = 1;
+    }
     
 }
 
