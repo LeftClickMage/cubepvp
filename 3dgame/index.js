@@ -71,91 +71,80 @@ const stats = new Stats();
 stats.showPanel(0); // 0: fps, 1: ms, 2: memory
 document.body.appendChild(stats.dom);
 
-// var controls = new OrbitControls(camera, renderer.domElement);
+// if(anim){
 
 
-// const composer = new EffectComposer(renderer);
-//         const renderPass = new RenderPass(scene, camera);
-//         composer.addPass(renderPass);
+//}
 
 
 //// GAME OBJECTS ////
-const vertexShader = `
+var leavesTime = {value: 0.0}
+var leavesPositionsAmount = {value: 1};
+var leavesPositions = { value: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
+var leavesAnim = { value: true };
 
-    varying vec2 vUv;
-    uniform float time;
-    const int numOfObjects = 1;
-    uniform vec3 positions[numOfObjects]; 
-    uniform vec3 ballPosition;
-    uniform bool anim;
-    void main() {
-        vUv = uv;
-        vec4 grassPosition = instanceMatrix * vec4(position, 1);      
-        if(anim){
-            vec4 prevGrassPos = grassPosition;
-        float bendFactor = grassPosition.y * grassPosition.y * 2.0;
-        for(int i = 0; i<numOfObjects; i++){
-            vec3 toObject = grassPosition.xyz - positions[i];
-            float distanceToObject = length(toObject);
-
-            if(distanceToObject < 1.1){
-                if(positions[i].x > grassPosition.x){
-                    grassPosition.x -= bendFactor;
-                } else if(positions[i].x < grassPosition.x){
-                    grassPosition.x += bendFactor;
-                }
-                if(positions[i].z > grassPosition.z){
-                    grassPosition.z -= bendFactor;
-                } else if(positions[i].z < grassPosition.z){
-                    grassPosition.z += bendFactor;
-                }
-            } 
-        }
-        
-
-      if (prevGrassPos == grassPosition && grassPosition.y > 0.1){
-          grassPosition.x += sin(grassPosition.y*grassPosition.y + time*7.0)/7.0;
-       } 
-        }
-        
-       
-        gl_Position = projectionMatrix * modelViewMatrix * grassPosition;
-    }
-`;
-
-const fragmentShader = `
-  varying vec2 vUv;
-  
-  void main() {
-  	vec3 baseColor = vec3( 0.41, 1.0, 0.5 );
-    float clarity = vUv.y * vUv.y * 0.4 + 0.35;
-    gl_FragColor = vec4( baseColor * clarity, 1);
-  }
-`;
-
-const leavesMaterial = new THREE.ShaderMaterial({
-	vertexShader,
-  fragmentShader,
-  uniforms: {
-    time: {
-        value: 0,
-    },
-    positions: { 
-        value: [
-            new THREE.Vector3(), //player [0]
-            // new THREE.Vector3(), //sphere [1]
-            // new THREE.Vector3(), //crate [2]
-            // new THREE.Vector3(), //enemy [3] 
-            // new THREE.Vector3(), //enemy [4]
-            // new THREE.Vector3(), //enemy [5]
-            // new THREE.Vector3(), //enemy [6]
-            // new THREE.Vector3(), //enemy [7]
-        ]
-    },
-    anim: {value: true},
-  },
-  side: THREE.DoubleSide
+var leavesMaterial = new THREE.MeshStandardMaterial({
+    side: THREE.DoubleSide,
 });
+
+leavesMaterial.defines.USE_UV = true;
+leavesMaterial.needsUpdate = true;
+
+//https://ycw.github.io/three-shaderlib-skim/dist/#/latest/standard/vertex
+leavesMaterial.onBeforeCompile = (program) => {
+    program.uniforms.uTime = leavesTime;
+    program.uniforms.uAnim = leavesAnim;
+    program.uniforms.uPositions = leavesPositions;
+    program.uniforms.uAmount = leavesPositionsAmount;
+
+    program.vertexShader = `
+        uniform float uTime;
+        uniform bool uAnim;
+        uniform int uAmount;
+        uniform vec3 uPositions[20];
+    
+    ` + program.vertexShader
+        .replace("#include <project_vertex>", `
+            vec4 mvPosition = instanceMatrix * vec4(transformed, 1.0);
+            vec4 prevGrassPos = mvPosition;
+
+            if(uAnim){
+                float bendFactor = mvPosition.y * mvPosition.y * 2.0;
+                for(int i = 0; i<uAmount; i++){
+                    float distanceToObject = length(mvPosition.xyz - uPositions[i]);
+                    if(distanceToObject < 1.1){
+                        if(uPositions[i].x > mvPosition.x){
+                            mvPosition.x -= bendFactor;
+                        } else if(uPositions[i].x < mvPosition.x){
+                            mvPosition.x += bendFactor;
+                        }
+                        if(uPositions[i].z > mvPosition.z){
+                            mvPosition.z -= bendFactor;
+                        } else if(uPositions[i].z < mvPosition.z){
+                            mvPosition.z += bendFactor;
+                        }
+                    } 
+                }
+
+                if (prevGrassPos == mvPosition && mvPosition.y > 0.1){
+                    mvPosition.x += sin(mvPosition.y*mvPosition.y + uTime *7.0)/7.0;
+                } 
+            }
+
+            mvPosition = modelViewMatrix * mvPosition;
+            gl_Position = projectionMatrix * mvPosition;
+        `)
+
+    program.fragmentShader = program.fragmentShader
+        .replace("#include <color_fragment>", `
+            float clarity = vUv.y * vUv.y * 0.4 + 0.1;
+            vec3 baseColor = vec3(0.41, 1.0, 0.5);
+            diffuseColor.rgb *= baseColor * clarity;
+        `)
+}
+
+
+
 
 
 const instanceNumber = 80000;
@@ -167,12 +156,12 @@ geometry.translate( 0, 0.1, 0 ); // move grass blade geometry lowest point at 0.
 
 const grass = new THREE.InstancedMesh( geometry, leavesMaterial, instanceNumber );
 grass.frustumCulled = true;
+grass.castShadow = true;
+grass.receiveShadow = true;
 
 scene.add( grass );
 
 
-
-// Position and scale the grass blade instances randomly.
 for (let i = 0; i < instanceNumber; i++) {
   const x = Math.random()*50-25;
   const z = Math.random()*50-25;
@@ -186,6 +175,15 @@ for (let i = 0; i < instanceNumber; i++) {
   
   grass.setMatrixAt(i, dummy.matrix);
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -282,6 +280,7 @@ var player = {
         material: new CANNON.Material(),
         angularDamping: 0.3,
         position: new CANNON.Vec3(30, 10, 0),
+        
     }),
     jumping: false,
     sprinting: false,
@@ -299,7 +298,32 @@ var player = {
     highScore: 0,
 }
 addToWorld(player);
+var contactNormal = new CANNON.Vec3(); 
+var upAxis = new CANNON.Vec3( 0, 1, 0 );
+player.body.addEventListener( "collide", function (e) {
+    player.body.angularFactor.set(0, 0, 0);
+    var contact = e.contact;
 
+    if (contact.bi == player.body) {
+        contact.ni.negate( contactNormal );
+    } 
+    else {
+        contactNormal.copy( contact.ni );
+    }
+    
+    if ( contactNormal.dot( upAxis ) > 0.5) {
+        touchingGround = true;
+    }
+
+    bullets.forEach((bullet)=>{
+        if(contact.bi == bullet.body || contact.bj == bullet.body){
+            if(player.mesh.position.x<24){
+                killPlayer();
+            }      
+        }
+    });
+    
+});
 
 var ground = {
     mesh: new THREE.Mesh(
@@ -582,6 +606,7 @@ function renderGame() {
 
     physicsWorld.step(timeStep);
     
+
     if(window.location.hostname == "localhost"){
         cannonDebugger.update();
     }
@@ -595,8 +620,8 @@ function renderGame() {
 
 
     setCameraPosition(5);
-    updateEnemyMovement();
     
+    updateEnemyMovement();
     updateMovement();
     socket.emit("updateMovement", ({
         x: player.body.position.x,
@@ -645,6 +670,8 @@ function renderGame() {
         populatePool();
         
     }
+
+    
 }
 var runOnce = false;
 var runned = false;
@@ -710,51 +737,62 @@ HTMLObj("bulletSpeedUpgrade").addEventListener("click", (e) => {
     }
     consoleLog("bullet speed: " + player.bulletSpeed);
 });
-HTMLObj("pistol").addEventListener("click", (e) => {
-   player.bulletSpeed = 50;
-    player.fireRate = 400;
-    consoleLog("Pistol: 400 FR | 50 BS");
-    HTMLObj("gunUI").innerHTML = "Pistol";
-    player.gun = "pistol";
-    HTMLObj("crosshair").style.top = "31%";
-    HTMLObj("crosshair").width = "25";
 
+function switchGunTo(gun){
+    if (gun == "pistol" && player.gun !== "pistol"){
+        player.bulletSpeed = 50;
+        player.fireRate = 400;
+        consoleLog("Pistol: 400 FR | 50 BS");
+        HTMLObj("gunUI").innerHTML = "Pistol";
+        player.gun = "pistol";
+        HTMLObj("crosshair").style.top = "31%";
+    } else if (gun == "ar" && player.gun !== "ar"){
+        player.bulletSpeed = 75;
+        player.fireRate = 200;
+        consoleLog("AR: 200 FR | 75 BS");
+        HTMLObj("gunUI").innerHTML = "AR";
+        player.gun = "ar";
+        HTMLObj("crosshair").style.top = "28%";
+    } else if (gun == "smg" && player.gun !== "smg"){
+        player.bulletSpeed = 50;
+        player.fireRate = 100;
+        consoleLog("SMG: 100 FR | 50 BS");
+        HTMLObj("gunUI").innerHTML = "SMG";
+        player.gun = "smg";
+        HTMLObj("crosshair").style.top = "31%";
+    } else if (gun == "sniper" && player.gun !== "sniper"){
+        player.bulletSpeed = 120;
+        player.fireRate = 700;
+        consoleLog("Sniper: 700 FR | 120 BS");
+        HTMLObj("gunUI").innerHTML = "Sniper";
+        player.gun = "sniper";
+        HTMLObj("crosshair").style.top = "25%";
+    } else if (gun == "shotgun" && player.gun !== "shotgun"){
+        player.bulletSpeed = 40;
+        player.fireRate = 500;
+        consoleLog("Shotgun: 500 FR | 40 BS");
+        HTMLObj("gunUI").innerHTML = "Shotgun";
+        player.gun = "shotgun";
+        HTMLObj("crosshair").style.top = "32%";
+    }
+}
+
+
+
+HTMLObj("pistol").addEventListener("click", (e) => {
+    switchGunTo("pistol");
 });
 HTMLObj("ar").addEventListener("click", (e) => {
-   player.bulletSpeed = 75;
-    player.fireRate = 200;
-    consoleLog("AR: 200 FR | 75 BS");
-    HTMLObj("gunUI").innerHTML = "AR";
-     player.gun = "ar";
-    HTMLObj("crosshair").style.top = "28%";
-    HTMLObj("crosshair").width = "30";
+   switchGunTo("ar");
 });
 HTMLObj("smg").addEventListener("click", (e) => {
-   player.bulletSpeed = 50;
-    player.fireRate = 100;
-    consoleLog("SMG: 100 FR | 50 BS");
-    HTMLObj("gunUI").innerHTML = "SMG";
-     player.gun = "smg";
-    HTMLObj("crosshair").style.top = "31%";
-    HTMLObj("crosshair").width = "30";
+   switchGunTo("smg");
 });
 HTMLObj("sniper").addEventListener("click", (e) => {
-   player.bulletSpeed = 120;
-    player.fireRate = 700;
-    consoleLog("Sniper: 700 FR | 120 BS");
-    HTMLObj("gunUI").innerHTML = "Sniper";
-     player.gun = "sniper";
-    HTMLObj("crosshair").style.top = "25%";
-    HTMLObj("crosshair").width = "25";
+   switchGunTo("sniper");
 });
 HTMLObj("shotgun").addEventListener("click", (e) => {
-   player.bulletSpeed = 40;
-    player.fireRate = 500;
-    consoleLog("Shotgun: 500 FR | 40 BS");
-    HTMLObj("gunUI").innerHTML = "Shotgun";
-     player.gun = "shotgun";
-    HTMLObj("crosshair").style.top = "32%";
-    HTMLObj("crosshair").width = "50";
+    switchGunTo("shotgun");
 });
 
 HTMLObj("switchShadow").addEventListener("click", (e) => {
@@ -776,7 +814,14 @@ HTMLObj("switchAnim").addEventListener("click", (e) => {
     }
 });
 
-
+HTMLObj("consoleInput").addEventListener("keydown", (event)=>{
+    if(event.key == "Enter"){
+        if(HTMLObj("consoleInput").value){
+            consoleLog(eval(HTMLObj("consoleInput").value));
+            HTMLObj("consoleInput").value = "";
+        }
+    }
+})
 
 
 //// SHOOTING ////
@@ -787,20 +832,7 @@ async function updateShooting(){
         if(bullet.body.position.y < -10 || bullet.body.velocity.length()< 0.25){
             destroy(bullet);  
         }
-        
-        bullet.body.addEventListener( "collide", async function (event) {
-            destroy(bullet);      
-            // if(event.contact.bi == ground.body || event.contact.bj == ground.body){
-            // // await downtime(500);
-            //     destroy(bullet);            
-            // } 
-            if(event.contact.bi == player.body || event.contact.bj == player.body){
-                if(bullet.playerID !== 0 && player.mesh.position.x<24){
-                    // destroy(bullet);
-                    killPlayer();
-                }
-            }
-        });
+
         
         bullet.prevVelX = bullet.body.velocity.x;
         bullet.prevVelY = bullet.body.velocity.y;
@@ -973,7 +1005,7 @@ function createSmallBullet(){
             quaternion: new THREE.Quaternion().copy(player.body.quaternion),
             ccdRadius: 1,
             ccdMotionThreshold: 1,
-            material: new CANNON.Material(),
+            material: noFrictionMaterial,
         }),
         prevVelX: forwardVector.x*player.bulletSpeed,
         prevVelY: 0.3,
@@ -983,6 +1015,9 @@ function createSmallBullet(){
     }
     bullet.body.material.restitution = 0;
     bullet.body.material.friction = 0;
+    bullet.body.addEventListener( "collide", async function (event) {
+        destroy(bullet);      
+    });
     return bullet;
 }
 
@@ -1002,9 +1037,18 @@ function checkForAiming(){
         player.lookSpeed = 0.03;
         player.speed = 5;
     }else {
+        if(player.gun == "sniper"){
+            HTMLObj("crosshair").width = "0";
+        } else if (player.gun == "pistol" || player.gun == "smg"){
+            HTMLObj("crosshair").width = "30";
+        } else if (player.gun == "shotgun") {
+            HTMLObj("crosshair").width = "50";
+        } else {
+            HTMLObj("crosshair").width = "25";
+        }
         camera.fov = 75;
         camera.lookAt(player.mesh.position);
-        HTMLObj("crosshair").width = "25";
+        
         HTMLObj("crosshair").style.transform = "translate(-50%, 0%)";
         player.lookSpeed = 0.05;
         player.speed = 7;
@@ -1030,27 +1074,7 @@ function updateEnemyMovement(){
         enemy.mesh.lookAt(player.mesh.position);
 
         enemy.mesh.position.copy(enemy.body.position);
-        enemy.body.quaternion.copy(enemy.mesh.quaternion);
-        
-
-        enemy.body.addEventListener("collide", function (e) {
-            var contact = e.contact;
-            bullets.forEach((bullet)=>{
-                if(contact.bi == bullet.body || contact.bj == bullet.body){
-                    killEnemy(enemy);          
-                    
-                    
-                    if(player.gun !== "sniper"){
-                        destroy(bullet);
-                    }
-                    bullet.velocity.set(bullet.prevVelX, bullet.prevVelY, bullet.prevVelZ);
-                }
-            });
-            if(contact.bi == player.body || contact.bj == player.body){
-                respawnPlayer();
-            }
-
-        }); 
+        enemy.body.quaternion.copy(enemy.mesh.quaternion);        
     })
 }
 
@@ -1143,9 +1167,10 @@ function updateOtherPlayerMovement(){
 
 
 
-
+var leavesOccupied = [true, false, false, false, false, false, false, false, false, false, false,false, false, false, false, false, false, false, false, false];
 var otherPlayers = {}
 var otherBullets = {}
+var amountOfOtherPlayers = 0;
 
 //// SERVER MANAGEMENT ////
 socket.on('updatePlayers', (otherPlayersObject)=>{
@@ -1165,22 +1190,32 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
                     }),
                 ),
                 body: new CANNON.Body({
-                    mass: 10,
+                    mass: 0,
                     shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
                     material: new CANNON.Material(),
                     angularDamping: 0.3,
                     position: new CANNON.Vec3(otherPlayer.position.x, otherPlayer.position.y, otherPlayer.position.z),
                 }),
+                leavesID: amountOfOtherPlayers+1,
 
             }
             otherBullets[id] = {};
             addToWorld(otherPlayers[id]);
+            amountOfOtherPlayers++;
+            leavesOccupied[amountOfOtherPlayers] = true;
+            // consoleLog(amountOfOtherPlayers);
         } else {
             // consoleLog("uipdated")
             otherPlayers[id].body.position.x = otherPlayer.position.x;
             otherPlayers[id].body.position.y = otherPlayer.position.y;
             otherPlayers[id].body.position.z = otherPlayer.position.z;
             otherPlayers[id].body.quaternion.copy(otherPlayer.quaternion);
+            if(!leavesOccupied[otherPlayers[id].leavesID - 1]){
+                leavesOccupied[otherPlayers[id].leavesID - 1] = true;
+                leavesOccupied[otherPlayers[id].leavesID] = false;
+                otherPlayers[id].leavesID--;
+            }
+            leavesPositions.value[otherPlayers[id].leavesID].copy(otherPlayers[id].mesh.position);
 
             var virtualBulletArray = otherPlayer.bullets;
             for (var bullet_id in virtualBulletArray){
@@ -1207,6 +1242,9 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
     for (var id in otherPlayers){
         if(!otherPlayersObject[id]){
             destroyObject(otherPlayers[id]);
+            leavesOccupied[amountOfOtherPlayers] = false;
+            amountOfOtherPlayers--;
+
             delete otherPlayers[id];
         }
     }
@@ -1326,7 +1364,7 @@ function shadows(value) {
     renderer.shadowMap.enabled = value;
     
     scene.traverse(function(object) {
-        if (object.isMesh && object !== grass) {
+        if (object.isMesh) {
             object.castShadow = value;
             object.receiveShadow = value;
         }
@@ -1378,25 +1416,39 @@ function addEnemy(){
         material: new CANNON.Material(),
     }),
 }
+
+enemy.body.addEventListener("collide", function (e) {
+    var contact = e.contact;
+    bullets.forEach((bullet)=>{
+        if(contact.bi == bullet.body || contact.bj == bullet.body){
+            killEnemy(enemy);          
+            if(player.gun !== "sniper"){
+                destroy(bullet);
+            }
+            bullet.velocity.set(bullet.prevVelX, bullet.prevVelY, bullet.prevVelZ);
+        }
+    });
+    if(contact.bi == player.body || contact.bj == player.body){
+        respawnPlayer();
+    }
+
+}); 
+
+
 addToWorld(enemy);
 enemies.push(enemy);
 }
 
 function destroy(object) {
+    
     if(bullets.has(object)){
-        socket.emit("deleteBullets", ({
-            id: object.id,
-        }));
-        
-        bullets.delete(object);
-        // object.body.velocity.set(0, 0, 0);
         object.body.sleep();
         object.body.position.set(-40, 5, -40);
         object.mesh.position.copy(object.body.position);
-
-        // scene.remove(object.mesh);  
-        // physicsWorld.removeBody(object.body);
-        
+        socket.emit("deleteBullets", ({
+            id: object.id,
+        }));
+        bullets.delete(object);
         bulletPool.push(object);
     }
 }
@@ -1404,27 +1456,12 @@ function destroy(object) {
 function HTMLObj(id){
     return document.getElementById(id);
 }
+
+
+
+
 var touchingGround = false;
 function checkIfCanJump(){
-     var contactNormal = new CANNON.Vec3(); 
-    var upAxis = new CANNON.Vec3( 0, 1, 0 );
-    player.body.addEventListener( "collide", function (e) {
-        player.body.angularFactor.set(0, 0, 0);
-
-        var contact = e.contact;
-
-        if (contact.bi == player.body) {
-            contact.ni.negate( contactNormal );
-        } 
-        else {
-            contactNormal.copy( contact.ni );
-        }
-        
-        if ( contactNormal.dot( upAxis ) > 0.5) {
-            touchingGround = true;
-        }
-    });
-    
     if(Math.abs(player.body.velocity.y)>3){
         player.canJump = false;
     } else if (touchingGround){
@@ -1550,12 +1587,15 @@ function animate(delta) {
     stats.begin()
     
     grassUpdateVal += 1/240;
-    leavesMaterial.uniforms.anim.value = anim;
+    leavesTime.value = grassUpdateVal;
+    leavesAnim.value = anim;
+    // leavesMaterial.uniforms.anim.value = anim;
 
-    leavesMaterial.uniforms.time.value = grassUpdateVal;
-    leavesMaterial.uniformsNeedUpdate = true;
-
-    leavesMaterial.uniforms.positions.value[0].copy(player.mesh.position);
+    // leavesMaterial..uTime.value = grassUpdateVal;
+    // leavesMaterial.uniformsNeedUpdate = true;
+    leavesPositionsAmount.value = amountOfOtherPlayers + 1;
+    leavesPositions.value[0].copy(player.mesh.position);
+    // leavesMaterial.uniforms.positions.value[0].copy(player.mesh.position);
     // leavesMaterial.uniforms.positions.value[1].copy(sphere.mesh.position);
     // leavesMaterial.uniforms.positions.value[2].copy(crate.mesh.position);
     // enemies.forEach((enemy, index)=>{
@@ -1627,8 +1667,23 @@ addEventListener('keydown', function(event) {
     if(key == "shift"){
         keys.leftShift = true;
     }
+    if(key == "1"){
+        gunNumber = 1;
+    }
+    if(key == "2"){
+        gunNumber = 2;
+    }
+    if(key == "3"){
+        gunNumber = 3;
+    }
+    if(key == "4"){
+        gunNumber = 4;
+    }
+    if(key == "5"){
+        gunNumber = 5;
+    }
 });
-
+var gunNumber = 1;
 addEventListener('keyup', function(event) {
     var key = event.key.toLowerCase();
     // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
@@ -1669,7 +1724,7 @@ addEventListener('keyup', function(event) {
         keys.leftShift = false;
     }
 });
-
+var pressSwapped = false;
 function checkForControllerInputs(){
     const controller = navigator.getGamepads()[0];
     if(controller){
@@ -1678,9 +1733,24 @@ function checkForControllerInputs(){
         const rightJoystickX = controller.axes[2]; 
         const buttonA = controller.buttons[0].pressed; 
         const buttonY = controller.buttons[3].pressed; 
+        const leftGun = controller.buttons[4].pressed; 
+        const rightGun = controller.buttons[5].pressed; 
+        if(leftGun && !pressSwapped){
+            pressSwapped = true;
+            gunNumber-= 1;
+        } else if (rightGun && !pressSwapped){
+            pressSwapped = true;
+            gunNumber+=1;
+        } else if(!leftGun && !rightGun){
+            pressSwapped = false;
+        }
         const aimTrigger = controller.buttons[6].pressed; 
         const shootTrigger = controller.buttons[7].pressed; 
         const leftJoystickPress = controller.buttons[10].pressed; 
+
+        
+
+
         if(leftJoystickPress){
             keys.upArrow = true;
         } else if(!leftJoystickPress){
@@ -1732,6 +1802,52 @@ function checkForControllerInputs(){
             keys.rightArrow = false;
             keys.leftArrow = false;
         }
+        
+    }
+    if(gunNumber > 5){
+        gunNumber = 1;
+    } else if (gunNumber < 1){
+        gunNumber = 5;
+    }
+    if(gunNumber == 1){
+        switchGunTo("pistol");
+    } else if(gunNumber == 2){
+        switchGunTo("smg");
+    } else if(gunNumber == 3){
+        switchGunTo("ar");
+    } else if(gunNumber == 4){
+        switchGunTo("sniper");
+    } else if(gunNumber == 5){
+        switchGunTo("shotgun");
+    } 
+    makeBackgroundRed();
+}
+
+function makeEverythingWhite(){
+    HTMLObj("pistol").style.backgroundColor = "white";
+    HTMLObj("ar").style.backgroundColor = "white";
+    HTMLObj("smg").style.backgroundColor = "white";
+    HTMLObj("sniper").style.backgroundColor = "white";
+    HTMLObj("shotgun").style.backgroundColor = "white";
+
+}
+
+function makeBackgroundRed(){
+    if(gunNumber == 1){
+        makeEverythingWhite();
+        HTMLObj("pistol").style.backgroundColor = "red";
+    } else if (gunNumber == 2){
+        makeEverythingWhite();
+        HTMLObj("smg").style.backgroundColor = "red";
+    } else if (gunNumber == 3){
+        makeEverythingWhite();
+        HTMLObj("ar").style.backgroundColor = "red";
+    } else if (gunNumber == 4){
+        makeEverythingWhite();
+        HTMLObj("sniper").style.backgroundColor = "red";
+    } else if (gunNumber == 5){
+        makeEverythingWhite();
+        HTMLObj("shotgun").style.backgroundColor = "red";
     }
 }
 
