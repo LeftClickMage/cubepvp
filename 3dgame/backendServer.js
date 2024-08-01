@@ -16,7 +16,7 @@ var bulletID = 0;
 
 
 io.on('connection', (socket) => {
-    console.log('A player joined!');
+    console.log('A player joined!' + socket.id);
     players[socket.id] = {
         position: {
             x: 30, 
@@ -26,8 +26,8 @@ io.on('connection', (socket) => {
         forwardVector: {},
         quaternion : {},
         bullets: {},
-        gun: "",
-        skin: "",
+        gun: "pistol",
+        skin: "playerHoldingpistol",
     }
     //io.emits for EVERYONE, and socket.emit emit for 1 player!!
     io.emit('updatePlayers', players);

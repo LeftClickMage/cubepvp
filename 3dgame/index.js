@@ -12,7 +12,24 @@ import Stats from 'https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min
 
 
 //// VARIABLES ////
-var socket = io();
+// Ensure the socket is created only once
+if (!window.socket) {
+    window.socket = io();
+
+    // window.socket.on('connect', () => {
+    //     console.log('Connected to server with ID:', window.socket.id);
+    // });
+
+    // window.socket.on('updatePlayers', (players) => {
+    //     console.log('Players updated:', players);
+    // });
+
+    // // Add other event listeners as needed
+    // window.socket.on('disconnect', () => {
+    //     console.log('Disconnected from server');
+    // });
+}
+
 var scene = new THREE.Scene();
 sceneSetup();
 var renderer = new THREE.WebGLRenderer();
@@ -852,9 +869,9 @@ function renderGame() {
     
 player.mesh.children.forEach(child => player.mesh.remove(child));
 
-    if(playerModels["playerHolding" + player.gun]){
-        switchSkins("playerHolding" + player.gun);
-    }
+    
+    
+    
     if(player.gun == "pistol"){
         bulletDelay = 9;
     } else if(player.gun == "smg"){
@@ -876,6 +893,10 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
 
 
         switchSkins("playerShooting" + player.gun);
+    } else if (player.sprinting){
+        switchSkins("playerDashing");
+    } else if(playerModels["playerHolding" + player.gun]){
+        switchSkins("playerHolding" + player.gun);
     }
 
     physicsWorld.step(timeStep);
@@ -945,7 +966,7 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
         
     }
 
-    socket.emit("updateMovement", ({
+    window.socket.emit("updateMovement", ({
         x: player.body.position.x,
         y: player.body.position.y,
         z: player.body.position.z,
@@ -1250,8 +1271,8 @@ function createBullet(x, z, width, height, playerX, playerY, playerZ, quaternion
     bullet.playerID = 1;
 
 }
-socket.on("playerSupered", ({x, y, z, quaternion, id})=>{
-    if(id !== socket.id && x>44){
+window.socket.on("playerSupered", ({x, y, z, quaternion, id})=>{
+    if(id !== window.socket.id && x>44){
 
     } else {
         var superBulletSize = 0.05;
@@ -1277,7 +1298,7 @@ socket.on("playerSupered", ({x, y, z, quaternion, id})=>{
     
 })
 function shootSuper(){
-    socket.emit("shotSuper");
+    window.socket.emit("shotSuper");
 }
 
 function populatePool(){
@@ -1329,11 +1350,11 @@ function shoot(){
             bullet.body.angularVelocity.set(0, 0, 0);
             bullet.body.angularFactor.set(0, 0, 0);
 
-            socket.emit('getCurrentBulletID');
+            window.socket.emit('getCurrentBulletID');
             bullet.id = bulletID;
             
         }
-        socket.emit("updateBullets");
+        window.socket.emit("updateBullets");
     } else {
         var bullet;
             if(bulletPool.length > 0){
@@ -1356,15 +1377,15 @@ function shoot(){
             bullet.body.velocity.set(bullet.prevVelX, bullet.prevVelY, bullet.prevVelZ);
             bullet.body.angularVelocity.set(0, 0, 0);
             bullet.body.angularFactor.set(0, 0, 0);
-            socket.emit('getCurrentBulletID');
+            window.socket.emit('getCurrentBulletID');
             bullet.id = bulletID;
-            socket.emit("updateBullets");
+            window.socket.emit("updateBullets");
     }
 
 
 }
 var bulletID = 0;
-socket.on("currentBulletID", (bulletid)=>{
+window.socket.on("currentBulletID", (bulletid)=>{
     bulletID = bulletid;
 })
 
@@ -1522,8 +1543,7 @@ var normalize = 1;
     }
     if(player.sprinting){
         // consoleLog("ASDASD")
-        switchSkins("playerDashing");
-
+        
         velocity.add(forwardVector.clone().multiplyScalar(player.speed*5));
     } 
 
@@ -1556,9 +1576,9 @@ var otherBullets = {}
 var amountOfOtherPlayers = 0;
 
 //// SERVER MANAGEMENT ////
-socket.on('updatePlayers', (otherPlayersObject)=>{
+window.socket.on('updatePlayers', (otherPlayersObject)=>{
     for(var id in otherPlayersObject){
-        if(id == socket.id){
+        if(id == window.socket.id){
             continue;
         }
         var otherPlayer = otherPlayersObject[id];
@@ -1608,19 +1628,15 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
             addToWorld(otherPlayers[id]);
             amountOfOtherPlayers++;
             leavesOccupied[amountOfOtherPlayers] = true;
-            // consoleLog(amountOfOtherPlayers);
         } else {
-            // consoleLog("uipdated")
-            // consoleLog(otherPlayer.skin);
-            otherPlayers[id].mesh.children.forEach((object) => {
-                otherPlayers[id].mesh.remove(object);
-            });
 
-            otherPlayers[id].mesh.add(otherPlayers[id].playerSkins[otherPlayer.skin]);
-            
-            // if(otherPlayer.skin == "playerDashing"){
-            //     otherPlayers[id].mesh.add(otherPlayers[id].playerSkins[otherPlayer.skin]);
-            // }
+            otherPlayers[id].mesh.children.forEach(child => otherPlayers[id].mesh.remove(child));
+            if (otherPlayers[id].playerSkins[otherPlayer.skin] instanceof THREE.Object3D) {
+    otherPlayers[id].mesh.add(otherPlayers[id].playerSkins[otherPlayer.skin]);
+} else {
+    consoleLog("NOT");
+}
+
             if(otherPlayer.position.x < 44){
                 otherPlayers[id].body.position.x = otherPlayer.position.x;
                 otherPlayers[id].body.position.y = otherPlayer.position.y;
@@ -1630,6 +1646,8 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
             otherPlayers[id].mesh.position.copy(otherPlayers[id].body.position);
             otherPlayers[id].mesh.quaternion.copy(otherPlayers[id].body.quaternion);
             
+
+
                     playerNameTags[id].position.copy(otherPlayers[id].mesh.position);
                     playerNameTags[id].geometry.computeBoundingBox();
                     const width = playerNameTags[id].geometry.boundingBox.max.x - playerNameTags[id].geometry.boundingBox.min.x;
@@ -1638,6 +1656,8 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
                     playerNameTags[id].position.y += 1;
                     playerNameTags[id].lookAt(camera.position);
                 
+
+
 
 
                 if(!leavesOccupied[otherPlayers[id].leavesID - 1]){
@@ -1895,7 +1915,7 @@ function destroy(object) {
         object.body.sleep();
         object.body.position.set(-40, 5, -40);
         object.mesh.position.copy(object.body.position);
-        socket.emit("deleteBullets", ({
+        window.socket.emit("deleteBullets", ({
             id: object.id,
         }));
         bullets.delete(object);
