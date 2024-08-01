@@ -27,6 +27,7 @@ io.on('connection', (socket) => {
         quaternion : {},
         bullets: {},
         gun: "",
+        skin: "",
     }
     //io.emits for EVERYONE, and socket.emit emit for 1 player!!
     io.emit('updatePlayers', players);
@@ -36,13 +37,14 @@ io.on('connection', (socket) => {
         delete players[socket.id];
         io.emit("updatePlayers", players);
     });
-    socket.on("updateMovement", ({x, y, z, quaternion, forwardVector, gun})=>{
+    socket.on("updateMovement", ({x, y, z, quaternion, forwardVector, gun, skin})=>{
         players[socket.id].position.x = x;
         players[socket.id].position.y = y;
         players[socket.id].position.z = z;
         players[socket.id].quaternion = quaternion;
         players[socket.id].forwardVector = forwardVector;
         players[socket.id].gun = gun;
+        players[socket.id].skin = skin;
     });
     var bulletsContainer = players[socket.id].bullets;
     socket.on("updateBullets", ()=>{

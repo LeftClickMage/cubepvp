@@ -268,15 +268,112 @@ addEnemy();
 addEnemy();
 addEnemy();
 
+
+var playerModels = {};
+
+
+var gltfLoader = new GLTFLoader();
+
+function loadPlayerModel({path, size, name}){
+    
+    
+    gltfLoader.load(path, (gltfScene)=>{
+        
+        gltfScene.scene.traverse(function(node){
+            if ( node.isMesh ) {
+                node.castShadow = true; 
+                node.receiveShadow = true; 
+            }
+        })
+       
+       playerModels[name] = gltfScene.scene; 
+
+        playerModels[name].position.set(0, -size/32, 0);
+        playerModels[name].quaternion.setFromAxisAngle(yAxis, -90 * degreeToRadian);
+        
+       
+    });
+}
+
+
+var loadedFirstModel = false;
+
+loadPlayerModel({
+    path: "assets/playerPistol.gltf", 
+    name: "playerHoldingpistol",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playerShootingPistol.gltf", 
+    name: "playerShootingpistol",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playersmg.gltf", 
+    name: "playerHoldingsmg",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playerShootingsmg.gltf", 
+    name: "playerShootingsmg",
+    size: 16,
+});
+
+
+loadPlayerModel({
+    path: "assets/playerHoldingar.gltf", 
+    name: "playerHoldingar",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playerShootingar.gltf", 
+    name: "playerShootingar",
+    size: 16,
+});
+
+
+loadPlayerModel({
+    path: "assets/playerHoldingsniper.gltf", 
+    name: "playerHoldingsniper",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playerShootingsniper.gltf", 
+    name: "playerShootingsniper",
+    size: 16,
+});
+
+
+loadPlayerModel({
+    path: "assets/playerHoldingshotgun.gltf", 
+    name: "playerHoldingshotgun",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playerShootingshotgun.gltf", 
+    name: "playerShootingshotgun",
+    size: 16,
+});
+
+
+loadPlayerModel({
+    path: "assets/playerDashing.gltf", 
+    name: "playerDashing",
+    size: 16,
+});
+
+
+
+
+
 var player = {
-    mesh: new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1), 
-        new THREE.MeshStandardMaterial({ 
-            color: 0xEEEEEE, // Base color of the metal (e.g., light gray)
-            metalness: 0.7,   // Fully metallic
-            roughness: 0.2,
-        }),
-    ),
+   mesh: new THREE.Group(),
     body: new CANNON.Body({
         mass: 10,
         shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
@@ -299,7 +396,10 @@ var player = {
     gun: "pistol",
     score:0,
     highScore: 0,
+    skin: "",
 }
+
+
 addToWorld(player);
 
 
@@ -738,28 +838,45 @@ HTMLObj("dashUI").style.background = "linear-gradient(to top, green, green)";
 
 
 
-
-// var atWall = false;
-function cameraPosition(){
-    // var distanceToWall = camera
-    // if(camera.position.x < -24) {
-    //     atWall = true;
-    //     setCameraPosition(Math.abs(Math.abs(camera.position.x) - 25));
-    // } else if (!atWall) {
-        setCameraPosition(5);
-    // }
-    // if(atWall){
-    //     if(camera.position.x > -22){
-    //         atWall = false;
-    //     }
-    // }
+function switchSkins(skinName){
+    player.mesh.add(playerModels[skinName]);
+    player.skin = skinName;
 }
 
+
 var grassUpdateVal = 0;
+var bulletTimer = 0;
+var bulletDelay = 5;
 //// GAME RENDER ////
 function renderGame() {
     
+player.mesh.children.forEach(child => player.mesh.remove(child));
 
+    if(playerModels["playerHolding" + player.gun]){
+        switchSkins("playerHolding" + player.gun);
+    }
+    if(player.gun == "pistol"){
+        bulletDelay = 9;
+    } else if(player.gun == "smg"){
+        bulletDelay = 2;
+    } else if (player.gun == "ar"){
+        bulletDelay = 4;
+    } else if (player.gun == "sniper"){
+        bulletDelay = 19;
+    } else if (player.gun == "shotgun"){
+        bulletDelay = 11;
+    }
+    if(shotBullet){
+        bulletDelay
+        if(bulletTimer >= bulletDelay){
+            shotBullet = false;
+            bulletTimer = 0;
+        }
+        bulletTimer++;
+
+
+        switchSkins("playerShooting" + player.gun);
+    }
 
     physicsWorld.step(timeStep);
     
@@ -768,6 +885,8 @@ function renderGame() {
         cannonDebugger.update();
     }
 
+
+
     originalAngularFactor = player.body.angularFactor.clone();
 
     
@@ -775,26 +894,22 @@ function renderGame() {
 
     
 
-    cameraPosition();
-    // setCameraPosition(5);
+
+    setCameraPosition(5);
     
     updateEnemyMovement();
     
     
     updateMovement();
-    socket.emit("updateMovement", ({
-        x: player.body.position.x,
-        y: player.body.position.y,
-        z: player.body.position.z,
-        quaternion: player.body.quaternion,
-        forwardVector: forwardVector,
-        gun: player.gun,
-    }));
-
+    
     checkForControllerInputs();
     
-    updateOtherPlayerMovement();
+
     updateShooting();
+    
+    
+    
+
     camera.updateProjectionMatrix();
 
     ground.mesh.position.copy(ground.body.position);
@@ -830,7 +945,16 @@ function renderGame() {
         
     }
 
-    
+    socket.emit("updateMovement", ({
+        x: player.body.position.x,
+        y: player.body.position.y,
+        z: player.body.position.z,
+        quaternion: player.body.quaternion,
+        forwardVector: forwardVector,
+        gun: player.gun,
+        skin: player.skin,
+    }));
+
 }
 var runOnce = false;
 var runned = false;
@@ -976,7 +1100,7 @@ function switchGunTo(gun){
         consoleLog("Shotgun: 500 FR | 40 BS");
         HTMLObj("gunUI").innerHTML = "Shotgun";
         player.gun = "shotgun";
-        HTMLObj("crosshair").style.top = "32%";
+        HTMLObj("crosshair").style.top = "31%";
     }
 }
 
@@ -1089,16 +1213,20 @@ async function updateShooting(){
     } else {
         inPlayingField = true;
     }
-    if(keys.q && player.canShoot && inPlayingField){
+    if(keys.q && player.canShoot && inPlayingField && !player.sprinting){
         player.canShoot = false;
         shoot();
+        shotBullet = true;
     }
-    if(keys.e && player.canSuper && inPlayingField){
+    if(keys.e && player.canSuper && inPlayingField && !player.sprinting){
         player.canSuper = false;
         shootSuper();
     }
+
+    
 }
 
+var shotBullet = false;
 function createBullet(x, z, width, height, playerX, playerY, playerZ, quaternion){
     var bullet;
     if(bulletPool.length > 0){
@@ -1182,7 +1310,7 @@ function shoot(){
                 bulletRotationVal *= 2/2.1;
             }
             const additionalRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), shellRotation);
-        bullet.body.position.set(player.body.position.x+ forwardVector.x*(i+1), player.body.position.y, player.body.position.z +forwardVector.z*(i+1));
+        bullet.body.position.set(player.body.position.x+ forwardVector.x*(i+1) -forwardVector.z/2, player.body.position.y, player.body.position.z+forwardVector.z*(i+1) + forwardVector.x/2);
 
             const resultQuaternion = new THREE.Quaternion().copy(player.body.quaternion).multiply(additionalRotation);
 
@@ -1215,7 +1343,7 @@ function shoot(){
                 bullet = createSmallBullet();
             }
 
-        bullet.body.position.set(player.body.position.x+ forwardVector.x, player.body.position.y, player.body.position.z +forwardVector.z);
+        bullet.body.position.set(player.body.position.x+ forwardVector.x -forwardVector.z/2, player.body.position.y, player.body.position.z+forwardVector.z + forwardVector.x/2);
 
             bullet.body.quaternion.copy(player.body.quaternion)
             
@@ -1279,6 +1407,7 @@ function checkForAiming(){
         camera.fov = 15;
         camera.lookAt(player.mesh.position.x, player.mesh.position.y+1.6, player.mesh.position.z);
         HTMLObj("crosshair").width = "25"*10;
+        HTMLObj("crosshair").style.left = "57%";
         HTMLObj("crosshair").style.transform = "translate(-50%, -45%)";
         player.lookSpeed = 0.01;
         player.speed = 2;
@@ -1286,6 +1415,7 @@ function checkForAiming(){
         camera.fov = 45;
         camera.lookAt(player.mesh.position.x, player.mesh.position.y+0.8, player.mesh.position.z);
         HTMLObj("crosshair").width = "25"*3;
+        HTMLObj("crosshair").style.left = "53%";
         HTMLObj("crosshair").style.transform = "translate(-50%, -35%)";
         player.lookSpeed = 0.03;
         player.speed = 5;
@@ -1302,6 +1432,7 @@ function checkForAiming(){
         camera.fov = 75;
         camera.lookAt(player.mesh.position);
         
+        HTMLObj("crosshair").style.left = "52%";
         HTMLObj("crosshair").style.transform = "translate(-50%, 0%)";
         player.lookSpeed = 0.05;
         player.speed = 7;
@@ -1344,6 +1475,8 @@ function renderGameObjects(){
 }
 
 function updateMovement() {
+    
+    
     if(player.body.position.y < -10 || player.body.position.y > 15){
         respawnPlayer();
     }
@@ -1388,8 +1521,11 @@ var normalize = 1;
         touchingGround = false;
     }
     if(player.sprinting){
+        // consoleLog("ASDASD")
+        switchSkins("playerDashing");
+
         velocity.add(forwardVector.clone().multiplyScalar(player.speed*5));
-    }
+    } 
 
     if(keys.upArrow && !player.sprinting && player.canSprint && !keys.leftShift){
         player.canSprint = false;
@@ -1405,18 +1541,6 @@ var normalize = 1;
     
     player.body.velocity.set(velocity.x, player.body.velocity.y, velocity.z);
 }
-
-function updateOtherPlayerMovement(){
-    for (var id in otherPlayers){
-
-            otherPlayers[id].body.angularFactor.set(0, 0, 0);
-            otherPlayers[id].mesh.position.copy(otherPlayers[id].body.position);
-            otherPlayers[id].mesh.quaternion.copy(otherPlayers[id].body.quaternion);
-        
-        
-    }
-}
-
 
 
 
@@ -1440,22 +1564,30 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
         var otherPlayer = otherPlayersObject[id];
         if(!otherPlayers[id]){
             otherPlayers[id] = {
-                mesh: new THREE.Mesh(
-                    new THREE.BoxGeometry(1, 1, 1), 
-                    new THREE.MeshStandardMaterial({ 
-                        color: 0xFF0000, // Base color of the metal (e.g., light gray)
-                        metalness: 0.7,   // Fully metallic
-                        roughness: 0.2,
-                    }),
-                ),
+                mesh: new THREE.Group(),
                 body: new CANNON.Body({
                     mass: 0,
                     shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
                     material: new CANNON.Material(),
                     angularDamping: 0.3,
-                    position: new CANNON.Vec3(otherPlayer.position.x, otherPlayer.position.y, otherPlayer.position.z),
+                    position: new CANNON.Vec3(30, 10, 0),
+                    
                 }),
                 leavesID: amountOfOtherPlayers+1,
+                playerSkins: {
+                    "playerHoldingpistol": playerModels["playerHoldingpistol"].clone(),
+                    "playerDashing": playerModels["playerDashing"].clone(),
+                    "playerShootingpistol": playerModels["playerShootingpistol"].clone(),
+                    
+                    "playerHoldingsmg": playerModels["playerHoldingsmg"].clone(),
+                    "playerShootingsmg": playerModels["playerShootingsmg"].clone(),
+                     "playerHoldingar": playerModels["playerHoldingar"].clone(),
+                    "playerShootingar": playerModels["playerShootingar"].clone(),
+                     "playerHoldingsniper": playerModels["playerHoldingsniper"].clone(),
+                    "playerShootingsniper": playerModels["playerShootingsniper"].clone(),
+                     "playerHoldingshotgun": playerModels["playerHoldingshotgun"].clone(),
+                    "playerShootingshotgun": playerModels["playerShootingshotgun"].clone(),
+                }
 
             }
 
@@ -1479,11 +1611,24 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
             // consoleLog(amountOfOtherPlayers);
         } else {
             // consoleLog("uipdated")
+            // consoleLog(otherPlayer.skin);
+            otherPlayers[id].mesh.children.forEach((object) => {
+                otherPlayers[id].mesh.remove(object);
+            });
+
+            otherPlayers[id].mesh.add(otherPlayers[id].playerSkins[otherPlayer.skin]);
+            
+            // if(otherPlayer.skin == "playerDashing"){
+            //     otherPlayers[id].mesh.add(otherPlayers[id].playerSkins[otherPlayer.skin]);
+            // }
             if(otherPlayer.position.x < 44){
                 otherPlayers[id].body.position.x = otherPlayer.position.x;
                 otherPlayers[id].body.position.y = otherPlayer.position.y;
                 otherPlayers[id].body.position.z = otherPlayer.position.z;
                 otherPlayers[id].body.quaternion.copy(otherPlayer.quaternion);
+            otherPlayers[id].body.angularFactor.set(0, 0, 0);
+            otherPlayers[id].mesh.position.copy(otherPlayers[id].body.position);
+            otherPlayers[id].mesh.quaternion.copy(otherPlayers[id].body.quaternion);
             
                     playerNameTags[id].position.copy(otherPlayers[id].mesh.position);
                     playerNameTags[id].geometry.computeBoundingBox();
@@ -1534,12 +1679,17 @@ socket.on('updatePlayers', (otherPlayersObject)=>{
     }
     for (var id in otherPlayers){
         if(!otherPlayersObject[id]){
-            destroyObject(otherPlayers[id]);
-            leavesOccupied[amountOfOtherPlayers] = false;
-            amountOfOtherPlayers--;
+            physicsWorld.removeBody(otherPlayers[id].body);
+            scene.remove(otherPlayers[id].mesh);
+
+            if(amountOfOtherPlayers > 0){
+                leavesOccupied[amountOfOtherPlayers] = false;
+                amountOfOtherPlayers--;
+            }
             removeMesh(playerNameTags[id]);
             delete playerNameTags[id];
             delete otherPlayers[id];
+            
         }
     }
 });
@@ -1594,7 +1744,7 @@ function shootOtherPlayerBullet({x, y, z, quaternion, forwardVector, bulletSpeed
                 bulletRotationVal *= 2/2.1;
             }
             const additionalRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), shellRotation);
-            bullet.body.position.set(x+ forwardVector.x*(i+1), y, z +forwardVector.z*(i+1));
+            bullet.body.position.set(x+ forwardVector.x*(i+1) -forwardVector.z/2, y, z+forwardVector.z*(i+1) + forwardVector.x/2);
             const resultQuaternion = new THREE.Quaternion().copy(quaternion).multiply(additionalRotation);
             bullet.body.quaternion.copy(resultQuaternion)
             addToWorld(bullet);
@@ -1624,7 +1774,7 @@ function shootOtherPlayerBullet({x, y, z, quaternion, forwardVector, bulletSpeed
         bullet.playerID = player_id;
         addToWorld(bullet);
         bullets.add(bullet);
-        bullet.body.position.set(x + forwardVector.x, y, z + forwardVector.z);
+        bullet.body.position.set(x+ forwardVector.x -forwardVector.z/2, y, z+forwardVector.z + forwardVector.x/2);
         bullet.body.quaternion.copy(quaternion)
         bullet.prevVelX = forwardVector.x * bulletSpeed;
         bullet.prevVelY = 0.3;
@@ -1846,7 +1996,7 @@ function setCameraPosition(distance){
              camera.position.set(camera.position.x, player.mesh.position.y + offsetY + 2.5, player.mesh.position.z + offsetZ);
         }
     if (atWall){
-        HTMLObj("crosshair").style.opacity = 0.5;
+        HTMLObj("crosshair").style.opacity = 0.4;
     } else if (!atWall){
         HTMLObj("crosshair").style.opacity = 1;
     }
