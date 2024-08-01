@@ -1688,6 +1688,9 @@ window.socket.on('updatePlayers', (otherPlayersObject)=>{
 
                 }
             } else {
+                otherPlayers[id].mesh.position.x = 0;
+                otherPlayers[id].mesh.position.y = -8;
+                otherPlayers[id].mesh.position.z = 0;
                 otherPlayers[id].body.position.x = 0;
                 otherPlayers[id].body.position.y = -8;
                 otherPlayers[id].body.position.z = 0;
