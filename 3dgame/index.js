@@ -12,22 +12,8 @@ import Stats from 'https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min
 
 
 //// VARIABLES ////
-// Ensure the socket is created only once
 if (!window.socket) {
     window.socket = io();
-
-    // window.socket.on('connect', () => {
-    //     console.log('Connected to server with ID:', window.socket.id);
-    // });
-
-    // window.socket.on('updatePlayers', (players) => {
-    //     console.log('Players updated:', players);
-    // });
-
-    // // Add other event listeners as needed
-    // window.socket.on('disconnect', () => {
-    //     console.log('Disconnected from server');
-    // });
 }
 
 var scene = new THREE.Scene();
@@ -38,7 +24,7 @@ var physicsWorld = new CANNON.World({
     gravity: new CANNON.Vec3(0, -35, 0),
 });
 var velocity;
-var forwardVector;
+var forwardVector = new THREE.Vector3(0, 0, 0);
 var rightVector;
 var timeStep = 1/60;
 var originalAngularFactor;
@@ -836,6 +822,24 @@ var cameraOutTween = new TWEEN.Tween(camera)
     startSprintDelay();
     // consoleLog("complete" + player.sprinting);
 });
+
+
+var arAim = new TWEEN.Tween(camera)
+    .to({ fov: 45 }, 250)
+    .easing(TWEEN.Easing.Quadratic.Out)
+    .onComplete(() => {
+    camera.fov = 45;
+});
+
+var sniperAim = new TWEEN.Tween(camera)
+    .to({ fov: 15 }, 500)
+    .easing(TWEEN.Easing.Quadratic.Out)
+    .onComplete(() => {
+    camera.fov = 15;
+    HTMLObj("crosshair").width = "25"*10;
+});
+
+
 var sprintDelay = 1500;
 async function startSprintDelay(){
     player.sprinting = false;
@@ -916,7 +920,7 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
     
 
 
-    setCameraPosition(5);
+    
     
     updateEnemyMovement();
     
@@ -931,13 +935,18 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
     
     
 
-    camera.updateProjectionMatrix();
+    
 
     ground.mesh.position.copy(ground.body.position);
     ground.mesh.quaternion.copy(ground.body.quaternion);
     player.mesh.position.copy(player.body.position);
     player.mesh.quaternion.copy(player.body.quaternion);
+
+    setCameraPosition(3);
+    camera.updateProjectionMatrix();
     renderGameObjects();
+
+
     checkForAiming();
     // composer.render();
     renderer.render(scene, camera);
@@ -1422,25 +1431,65 @@ function createSmallBullet(){
     });
     return bullet;
 }
-
+var arStarted = false;
+var sniperStarted = false;
 function checkForAiming(){
+    var lookFactor, verticalDisplacement;
+    if(player.gun == "pistol" || player.gun == "smg" || player.gun == "shotgun"){
+        lookFactor = 0.86;
+        verticalDisplacement = 1;
+    } else if (player.gun == "ar"){
+        lookFactor = 0.90;
+        verticalDisplacement = 1.15;
+    } else if (player.gun == "sniper"){
+        lookFactor = 0.94;
+        verticalDisplacement = 1.25;
+    }
+    
     if(keys.leftShift && player.gun == "sniper"){
-        camera.fov = 15;
-        camera.lookAt(player.mesh.position.x, player.mesh.position.y+1.6, player.mesh.position.z);
-        HTMLObj("crosshair").width = "25"*10;
-        HTMLObj("crosshair").style.left = "57%";
-        HTMLObj("crosshair").style.transform = "translate(-50%, -45%)";
+        resetCrosshairPosition();
+        if(arStarted){
+            arStarted = false;
+            camera.fov = 75;
+            
+        }
+        if(!sniperStarted){
+            HTMLObj("crosshair").width = "0";
+            sniperStarted = true;
+            sniperAim.start();
+        }
         player.lookSpeed = 0.01;
-        player.speed = 2;
+            player.speed = 2;
+        camera.lookAt(player.mesh.position.x-forwardVector.z*lookFactor, player.mesh.position.y + verticalDisplacement, player.mesh.position.z+forwardVector.x*lookFactor);
+        
+        
     } else if(keys.leftShift && player.gun == "ar"){
-        camera.fov = 45;
-        camera.lookAt(player.mesh.position.x, player.mesh.position.y+0.8, player.mesh.position.z);
+        resetCrosshairPosition();
+        if(sniperStarted){
+            sniperStarted = false;
+            camera.fov = 75;
+        }
+        if(!arStarted){
+            arStarted = true;
+            arAim.start();
+        }
+        camera.lookAt(player.mesh.position.x-forwardVector.z*lookFactor, player.mesh.position.y + verticalDisplacement, player.mesh.position.z+forwardVector.x*lookFactor);
         HTMLObj("crosshair").width = "25"*3;
-        HTMLObj("crosshair").style.left = "53%";
-        HTMLObj("crosshair").style.transform = "translate(-50%, -35%)";
         player.lookSpeed = 0.03;
         player.speed = 5;
     }else {
+        if(player.gun == "ar"){
+            arAim.stop();
+        }
+        if(player.gun == "sniper"){
+            sniperAim.stop();
+        }
+
+            camera.fov = 75;
+        
+        
+        arStarted = false;
+        sniperStarted = false;
         if(player.gun == "sniper"){
             HTMLObj("crosshair").width = "0";
         } else if (player.gun == "pistol" || player.gun == "smg"){
@@ -1450,17 +1499,20 @@ function checkForAiming(){
         } else {
             HTMLObj("crosshair").width = "25";
         }
-        camera.fov = 75;
-        camera.lookAt(player.mesh.position);
+ 
+        camera.lookAt(player.mesh.position.x-forwardVector.z*lookFactor, player.mesh.position.y + verticalDisplacement, player.mesh.position.z+forwardVector.x*lookFactor);
         
-        HTMLObj("crosshair").style.left = "52%";
-        HTMLObj("crosshair").style.transform = "translate(-50%, 0%)";
+        resetCrosshairPosition();
         player.lookSpeed = 0.05;
         player.speed = 7;
     }
 }
 
-
+function resetCrosshairPosition(){
+    HTMLObj("crosshair").style.left = "50%";
+    HTMLObj("crosshair").style.top = "50%";
+    HTMLObj("crosshair").style.transform = "translate(-50%, -50%)";
+}
 
 
 
@@ -1552,10 +1604,13 @@ var normalize = 1;
         player.sprinting = true;
         cameraOutTween.start();
 
-    }else if(camera.fov > 75 && !player.sprinting){
-            cameraOutTween.stop();
-            camera.fov -= 1.5;
- }
+    }
+    
+    
+//     else if(camera.fov > 75 && !player.sprinting && !keys.leftShift){
+//             cameraOutTween.stop();
+//             camera.fov -= 1.5;
+//  }
   
     // Set the velocity to the box body
     
@@ -1973,17 +2028,21 @@ function increaseLightShadowRange(light, amount, shadowQuality){
     light.shadow.mapSize.height = shadowQuality;
 }
 var atWall = false;
+
 function setCameraPosition(distance){
+    var offsetX, offsetY, offsetZ;
     if(keys.rightArrow){
         rotationX += player.lookSpeed;
     }
     if(keys.leftArrow){
         rotationX -= player.lookSpeed;
     }
+    
 
-    var offsetX = Math.sin(-rotationX) * distance;
-    var offsetY = Math.sin(rotationY) * distance;
-    var offsetZ = Math.cos(-rotationX) * distance;
+        offsetX = Math.sin(-rotationX) * distance - forwardVector.z*1;
+        offsetY = Math.sin(rotationY) * distance-1;
+        offsetZ = Math.cos(-rotationX) * distance +forwardVector.x*1;
+
     if(camera.position.x < -23.5 || (camera.position.x > 23.5 && player.mesh.position.x < 24 && player.mesh.position.y < 6)){
         if(camera.position.x > 23.6){
             camera.position.x = 23.5001;
@@ -2164,23 +2223,25 @@ addEventListener('keydown', function(event) {
     if(key == " "){
         player.jumping = true;
     }
-    if(key == "shift"){
-        keys.leftShift = true;
-    }
-    if(key == "1"){
+
+    if(event.code == "Digit1"){
+        consoleLog("ASDASD");
         gunNumber = 1;
     }
-    if(key == "2"){
+    if(event.code == "Digit2"){
         gunNumber = 2;
     }
-    if(key == "3"){
+    if(event.code == "Digit3"){
         gunNumber = 3;
     }
-    if(key == "4"){
+    if(event.code == "Digit4"){
         gunNumber = 4;
     }
-    if(key == "5"){
+    if(event.code == "Digit5"){
         gunNumber = 5;
+    }
+    if(key == "shift"){
+        keys.leftShift = true;
     }
 });
 var gunNumber = 1;
@@ -2324,30 +2385,30 @@ function checkForControllerInputs(){
 }
 
 function makeEverythingWhite(){
-    HTMLObj("pistol").style.backgroundColor = "white";
-    HTMLObj("ar").style.backgroundColor = "white";
-    HTMLObj("smg").style.backgroundColor = "white";
-    HTMLObj("sniper").style.backgroundColor = "white";
-    HTMLObj("shotgun").style.backgroundColor = "white";
+    HTMLObj("pistol").style.background = "linear-gradient(to top, white, white)";
+    HTMLObj("ar").style.background = "linear-gradient(to top, white, white)";
+    HTMLObj("smg").style.background = "linear-gradient(to top, white, white)";
+    HTMLObj("sniper").style.background = "linear-gradient(to top, white, white)";
+    HTMLObj("shotgun").style.background = "linear-gradient(to top, white, white)";
 
 }
 
 function makeBackgroundRed(){
     if(gunNumber == 1){
         makeEverythingWhite();
-        HTMLObj("pistol").style.backgroundColor = "red";
+        HTMLObj("pistol").style.background = "linear-gradient(to top, red, red)";
     } else if (gunNumber == 2){
         makeEverythingWhite();
-        HTMLObj("smg").style.backgroundColor = "red";
+        HTMLObj("smg").style.background = "linear-gradient(to top, red, red)";
     } else if (gunNumber == 3){
         makeEverythingWhite();
-        HTMLObj("ar").style.backgroundColor = "red";
+        HTMLObj("ar").style.background = "linear-gradient(to top, red, red)";
     } else if (gunNumber == 4){
         makeEverythingWhite();
-        HTMLObj("sniper").style.backgroundColor = "red";
+        HTMLObj("sniper").style.background = "linear-gradient(to top, red, red)";
     } else if (gunNumber == 5){
         makeEverythingWhite();
-        HTMLObj("shotgun").style.backgroundColor = "red";
+        HTMLObj("shotgun").style.background = "linear-gradient(to top, red, red)";
     }
 }
 

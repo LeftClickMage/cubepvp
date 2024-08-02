@@ -68,14 +68,17 @@
 		<p style="position:absolute; top:50px; background-color:rgba(255, 255, 255, 0.5); font-family:Ubuntu; width:200px; height:350px; overflow:hidden; display:none;" id="consoleDiv">GAME CONSOLE: <br><input style="width:180px; margin-left:10px;" id="consoleInput" placeholder="Variable Name"><br><span id = "console"></span></p>
 
 		<div style="position:absolute; right:2%; top:2%;">
-		<p id="switchConsole" class="btn btn-info border-dark border-5">CONSOLE</p>
+		
 		<p id="switchControls" class="btn btn-info border-dark border-5">CONTROLS</p>
 		<p id="switchPerformance" class="btn btn-info border-dark border-5">GRAPHICS - <b><span id="graphicsValue">ULTRA HIGH</span></b></p>
 		<br>
 			<p style="color:white; font-family:Ubuntu; display:none; width:300px;" id = "controlsText"><u><b>Controls: (KBM | Controller)</b></u><br><b>Movement</b> - WASD | L Joystick<br><b>Jump</b> - Space | A<br><b>Look</b> - Arrow Keys | R Joystick<br><b>Dash</b> - Up Arrow | LS<br><b>Shoot</b> - Q | RT<br><b>Change Gun</b> - Numbers | LB/RB<br><b>Aim</b> - Shift | LT<br><b>Super</b> - E | Y</p>
 	   </div>
-		<div style="position:absolute; right:2%; bottom:2%; color:white; font-size:20px; display:flex;">
-		<div style="width:100px; height:100px; background-color:black; margin-right:10px;" id = "gunUI" class="border border-primary border-5 text-center pt-1"><b>Pistol</b></div>
+
+
+	   <div style="position:absolute; right:2%; bottom:2%; color:white; font-size:20px; ">
+		<div style="display:flex; position:absolute; right:	0px; bottom:110px;">
+		<div style="width:100px; height:100px; background-color:white; margin-right:10px; color:black;" id = "gunUI" class="border border-dark border-5 text-center pt-1">Pistol</div>
 
 		<div style="position:absolute; width:100px;height:100px; background-color:red; left:110px;z-index:1;" class="bg-dark"></div>
 		<div style="width:100px; height:100px; background: linear-gradient(to top, green, green); background-size: 1% 1%;margin-right:10px;z-index:2;" id = "shootUI" class="border border-dark border-5 text-center pt-1"><b>SHOOT</b></div>
@@ -90,9 +93,25 @@
 		<div style="width:100px; height:100px; background: linear-gradient(to top, green, green); background-size: 1% 1%;margin-right:10px;z-index:6;" id = "superUI" class="border border-dark border-5 text-center pt-1"><b>SUPER</b></div>
 
 		</div>
+
+
+
+
+		<div style="display:flex;">
+<div style="width:100px; height:100px; background: linear-gradient(to top, white, white); background-size: 1% 1%;margin-right:10px;z-index:9;" id = "pistol" class="border border-dark border-5 text-center pt-1"><img src="assets/PlayerHoldingPistol.png" width="80px" style="margin-top:10px;"></div>
+			<div style="width:100px; height:100px; background: linear-gradient(to top, white, white); background-size: 1% 1%;margin-right:10px;z-index:9;" id = "smg" class="border border-dark border-5 text-center pt-1"><img src="assets/PlayerHoldingSMG.png" width="80px" style="margin-top:10px;"></div>
+			<div style="width:100px; height:100px; background: linear-gradient(to top, white, white); background-size: 1% 1%;margin-right:10px;z-index:9;" id = "ar" class="border border-dark border-5 text-center pt-1"><img src="assets/PlayerHoldingAR.png" width="80px" style="margin-top:15px;"></div>
+			<div style="width:100px; height:100px; background: linear-gradient(to top, white, white); background-size: 1% 1%;margin-right:10px;z-index:9;" id = "sniper" class="border border-dark border-5 text-center pt-1"><img src="assets/PlayerHoldingSniper.png" width="80px" style="margin-top:20px;"></div>
+			<div style="width:100px; height:100px; background: linear-gradient(to top, white, white); background-size: 1% 1%;margin-right:10px;z-index:9;" id = "shotgun" class="border border-dark border-5 text-center pt-1"><img src="assets/PlayerHoldingShotgun.png" width="80px" style="margin-top:20px;"></div>
+
+</div>
+
+</div>
+
 		<div style="position:absolute; bottom:1%; left:1%;">
 		
 			<div style="display:none;" id="debugTools">
+			<p id="switchConsole" class="btn btn-info border-dark border-5">CONSOLE</p>
 			<p id="switchAnim" class="btn btn-primary border-dark border-5">Anims ON</p>
 		<p id="switchShadow" class="btn btn-primary border-dark border-5">Shadows ON</p>
 		<p id="switchGrass" class="btn btn-primary border-dark border-5">GRASS ON</p>
@@ -100,18 +119,12 @@
 				<p id="fireRateUpgrade" class="btn btn-danger border-dark border-5">Upgrade Fire Rate</p>
 				
 				<p id="bulletSpeedUpgrade" class="btn btn-danger border-dark border-5">Upgrade Bullet Speed</p>
-			</div>
 
-			<br>
-			<p id="pistol" class="btn btn-light border-dark border-5">Pistol</p>
-	
-			<p id="smg" class="btn btn-light border-dark border-5">SMG</p>
+			</div>
 			
-			<p id="ar" class="btn btn-light border-dark border-5">AR</p>
-			<p id="sniper" class="btn btn-light border-dark border-5">Sniper</p>
-			<p id="shotgun" class="btn btn-light border-dark border-5">Shotgun</p>
+			
 		</div>
-		<script type="module" src="index.js?version=0.8.13"></script>
+		<script type="module" src="index.js?version=0.9.13"></script>
 	</body>
 </html>
 
@@ -140,6 +153,7 @@
 0.8.11 Added a player model, new model for each weapon, shooting and idle, and for dashing. can no longer shoot while dashing
 0.8.12 Hopeful patch to game crashing.
 0.8.13 silent patch to fix player mesh not dissapearing when entering practice mode
+0.9.13 Third Person Camera!! Added images for gun hotbar instead of words. Removed console from public access. Added aiming TWEENS. Fixed bug when not able to swap between guns when aiming. Crosshair is always in the center now. Player now moves in sync with camera.  
  -->
 
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
