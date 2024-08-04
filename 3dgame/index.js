@@ -64,7 +64,7 @@ var degreeToRadian = Math.PI/180;
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 var light = new THREE.DirectionalLight(0xfff7e0, 10);
-light.position.set(50, 80, 10);
+light.position.set(30, 80, 10);
 
 increaseLightShadowRange(light, 100, 2048);
 var light2 = new THREE.AmbientLight(0xF0F0F0);
