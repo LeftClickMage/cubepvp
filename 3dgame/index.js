@@ -211,18 +211,6 @@ var platform = [
     },
     {
         mesh: new THREE.Mesh(
-            new THREE.BoxGeometry(4, 0.6, 4), 
-            new THREE.MeshPhongMaterial({ color: 0x00F000, shininess: 100})
-        ),
-        body: new CANNON.Body({//respawn platform
-            type: CANNON.Body.STATIC,
-            shape: new CANNON.Box(new CANNON.Vec3(2, 0.3, 2)),
-            material: noFrictionMaterial,
-            position: new CANNON.Vec3(0, 8, 0)
-        })
-    },
-    {
-        mesh: new THREE.Mesh(
             new THREE.BoxGeometry(1, 0.2, 1), 
             new THREE.MeshStandardMaterial({ color: 0x000000})
         ),
@@ -771,7 +759,7 @@ var sphere = {
         mass: 0,
         shape: new CANNON.Sphere(0.5),
         material: new CANNON.Material(),
-        position: new CANNON.Vec3(3, 0.5, 0), 
+        position: new CANNON.Vec3(13, 0.5, -10), 
         linearDamping: 0.3,
         angularDamping: 0.3,
     }),
@@ -779,15 +767,77 @@ var sphere = {
 addToWorld(sphere);
 gameObjects.push(sphere);
 
+
+
+
 createWall(10, 0, false);
 createWall(10, 0, true);
-createWall(-10, -10, false);
+// createWall(-10, -10, false);
 // createWall(10, -18, false);
 // createWall(15, 15, false);
-createWall(5, 5, false);
+// createWall(5, 5, false);
 createWall(-5, -5, true);
 createWall(-10, 15, true);
 // createBuilding(10, -15, true);
+
+createTree(-10, -10);
+// createTree(-15, 15);
+createTree(15, -4);
+createTree(10, 10);
+
+createTree(-15, 0);
+createTree(-10, 10);
+createTower(0, 0);
+createHitbox(1.1, 0, 1.1, 0.4, 6, 0.4);
+createHitbox(-1.1, 0, 1.1, 0.4, 6, 0.4);
+createHitbox(1.1, 0, -1.1, 0.4, 6, 0.4);
+createHitbox(-1.1, 0, -1.1, 0.4, 6, 0.4);
+
+function createHitbox(x, y, z, width, height, length){
+
+var hitbox = new CANNON.Body({
+        mass: 0,
+        shape: new CANNON.Box(new CANNON.Vec3(width, height, length)),
+        position: new CANNON.Vec3(x, y, z),
+        material: noFrictionMaterial,
+    });
+
+    physicsWorld.addBody(hitbox);
+}
+
+
+function createTree(x, z){
+    var tree = {
+    mesh: new THREE.Group(),
+    body: new CANNON.Body({
+        mass: 0,
+        shape: new CANNON.Box(new CANNON.Vec3(0.5, 7, 0.5)),
+        angularDamping: 0.3,
+        position: new CANNON.Vec3(x, 0, z),
+        material: noFrictionMaterial,
+    }),
+    }
+    tree.mesh.scale.set(5, 5, 5);
+    loadSprite(tree.mesh, "assets/Tree.gltf", 0);
+    addToWorld(tree);
+    gameObjects.push(tree);
+}
+
+function createTower(x, z){
+    var tower = {
+    mesh: new THREE.Group(),
+    body: new CANNON.Body({
+        mass: 0,
+        shape: new CANNON.Box(new CANNON.Vec3(2.3, 0.75, 2.3)),
+        position: new CANNON.Vec3(x, 7, z),
+        material: noFrictionMaterial,
+    }),
+    }
+    tower.mesh.scale.set(12, 12, 12);
+    loadSprite(tower.mesh, "assets/SpawnPlatform.gltf", 20);
+    addToWorld(tower);
+    gameObjects.push(tower);
+}
 
 function createBuilding(x, z, value){   
     createBuildingWall(x-3, z, value);
@@ -883,7 +933,7 @@ function createPlank(x, y, z, value){
         x = z;
         z = temp;
     }
-    var stone = {
+    var plank = {
     mesh: new THREE.Group(),
     body: new CANNON.Body({
         mass: 0,
@@ -894,9 +944,9 @@ function createPlank(x, y, z, value){
         // angularFactor: new CANNON.Vec3(0, 0, 0),
     }),
     }
-    loadSprite(stone.mesh, "assets/oakPlank.gltf", 16);
-    addToWorld(stone);
-    gameObjects.push(stone);
+    loadSprite(plank.mesh, "assets/oakPlank.gltf", 16);
+    addToWorld(plank);
+    gameObjects.push(plank);
 }
 
 
@@ -1267,7 +1317,7 @@ function switchGunTo(gun){
         player.bulletSpeed = 75;
         player.fireRate = 200;
         consoleLog("AR: 200 FR | 75 BS");
-        HTMLObj("gunUI").innerHTML = "AR";
+        HTMLObj("gunUI").innerHTML = "Rifle";
         player.gun = "ar";
         HTMLObj("crosshair").style.top = "28%";
     } else if (gun == "smg" && player.gun !== "smg"){
@@ -1494,7 +1544,7 @@ function populatePool(){
 
 function shoot(){
     if(player.gun == "shotgun"){
-        for(let i = 0; i<3; i++){
+        for(let i = 0; i<5; i++){
             var shellFactor;
             var bulletRotationVal = Math.PI/2;
             var shellRotation = Math.PI;
@@ -1513,6 +1563,14 @@ function shoot(){
             if(i == 2){
                 shellRotation /= -25;
                 bulletRotationVal *= 2/2.1;
+            }
+            if(i == 3){
+                shellRotation /= 25;
+                bulletRotationVal *= 2/1.8;
+            }
+            if(i == 4){
+                shellRotation /= -25;
+                bulletRotationVal *= 2/2.2;
             }
             const additionalRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), shellRotation);
         bullet.body.position.set(player.body.position.x+ forwardVector.x*(i+1) -forwardVector.z/2, player.body.position.y, player.body.position.z+forwardVector.z*(i+1) + forwardVector.x/2);
@@ -1979,7 +2037,7 @@ async function respawnPlayer(){
 
 function shootOtherPlayerBullet({x, y, z, quaternion, forwardVector, bulletSpeed, bullet_id, player_id, gun}){
     if(gun == "shotgun"){
-        for(let i = 0; i<3; i++){
+        for(let i = 0; i<5; i++){
             var bulletRotationVal = Math.PI/2;
             var shellRotation = Math.PI;
             var bullet;
@@ -1996,6 +2054,14 @@ function shootOtherPlayerBullet({x, y, z, quaternion, forwardVector, bulletSpeed
             if(i == 2){
                 shellRotation /= -25;
                 bulletRotationVal *= 2/2.1;
+            }
+            if(i == 3){
+                shellRotation /= 25;
+                bulletRotationVal *= 2/1.8;
+            }
+            if(i == 4){
+                shellRotation /= -25;
+                bulletRotationVal *= 2/2.2;
             }
             const additionalRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), shellRotation);
             bullet.body.position.set(x+ forwardVector.x*(i+1) -forwardVector.z/2, y, z+forwardVector.z*(i+1) + forwardVector.x/2);
