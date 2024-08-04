@@ -781,12 +781,12 @@ createWall(-10, 15, true);
 // createBuilding(10, -15, true);
 
 createTree(-10, -10);
-// createTree(-15, 15);
+createTree(-10, 10);
 createTree(15, -4);
 createTree(10, 10);
 
 createTree(-15, 0);
-createTree(-10, 10);
+createTree(0, -15);
 createTower(0, 0);
 createHitbox(1.1, 0, 1.1, 0.4, 6, 0.4);
 createHitbox(-1.1, 0, 1.1, 0.4, 6, 0.4);
