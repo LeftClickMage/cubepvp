@@ -870,8 +870,8 @@ function createWall(x, z, value){
     createPlank(x+1, 1.5, z, value);
     createPlank(x-1, 1.5, z, value);
 
-    createPlank(x+1, 2.5, z, value);
-    createPlank(x-1, 2.5, z, value);
+    createStone(x+1, 2.5, z, value);
+    createStone(x-1, 2.5, z, value);
 
     createStone(x+2, 0.5, z+1, value);
     createStone(x-2, 0.5, z+1, value);
@@ -1128,7 +1128,8 @@ var runnedSuper = false;
 var reloading = false;
 //// RELOADING ////
 async function checkForReloading(){
-    if(!player.sprinting && !keys.leftShift && !reloading  && (keys.r || player.ammo[player.gun] == 0 && keys.q)){
+    if(!player.sprinting && !keys.leftShift && !reloading  && keys.r){
+        keys.r = false;
         reloading = true;
         var reloadTime = 0;
         var ammoAmount = 0;
@@ -1412,11 +1413,15 @@ async function updateShooting(){
     } else {
         inPlayingField = true;
     }
-    if(keys.q && player.canShoot && inPlayingField && !player.sprinting && player.ammo[player.gun] > 0){
-        player.ammo[player.gun]--;
-        player.canShoot = false;
-        shoot();
-        shotBullet = true;
+    if(keys.q && player.canShoot && inPlayingField && !player.sprinting){
+        if(player.ammo[player.gun] > 0){
+            player.ammo[player.gun]--;
+            player.canShoot = false;
+            shoot();
+            shotBullet = true;
+        } else {
+            keys.r = true;
+        }
     }
     if(keys.e && player.canSuper && inPlayingField && !player.sprinting){
         player.canSuper = false;
