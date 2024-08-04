@@ -86,9 +86,12 @@ var leavesTime = {value: 0.0}
 var leavesPositionsAmount = {value: 1};
 var leavesPositions = { value: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
 var leavesAnim = { value: true };
+const textureLoader = new THREE.TextureLoader();
+const texture = textureLoader.load('assets/grass.png');
 
 var leavesMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
+    map: texture,
 });
 
 leavesMaterial.defines.USE_UV = true;
@@ -139,12 +142,12 @@ leavesMaterial.onBeforeCompile = (program) => {
             gl_Position = projectionMatrix * mvPosition;
         `)
 
-        program.fragmentShader = program.fragmentShader
-        .replace("#include <color_fragment>", `
-            float clarity = vUv.y * vUv.y * 0.4 + 0.1;
-            vec3 baseColor = vec3(0.41, 1.0, 0.5);
-            diffuseColor.rgb *= baseColor * clarity;
-        `)
+        // program.fragmentShader = program.fragmentShader
+        // .replace("#include <color_fragment>", `
+        //     float clarity = vUv.y * vUv.y * 0.4 + 0.1;
+        //     vec3 baseColor = vec3(0.41, 1.0, 0.5);
+        //     diffuseColor.rgb *= baseColor * clarity;
+        // `)
 
 }
 
@@ -784,7 +787,7 @@ createWall(15, 15, false);
 createWall(5, 5, false);
 createWall(-5, -5, true);
 createWall(-10, 15, true);
-createBuilding(10, -15, true);
+// createBuilding(10, -15, true);
 
 function createBuilding(x, z, value){   
     createBuildingWall(x-3, z, value);
