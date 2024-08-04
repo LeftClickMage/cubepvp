@@ -7,8 +7,6 @@ import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import Stats from 'https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js';
-// import {RenderPass} from "three/addons/postprocessing/RenderPass";
-// import {EffectComposer} from "three/addons/postprocessing/EffectComposer";
 
 
 //// VARIABLES ////
@@ -26,7 +24,6 @@ var physicsWorld = new CANNON.World({
 var velocity;
 var forwardVector = new THREE.Vector3(0, 0, 0);
 var rightVector;
-var timeStep = 1/60;
 var originalAngularFactor;
 var cannonDebugger = new CannonDebugger(scene, physicsWorld, {color: 0xff0000});
 var keys = {
@@ -40,6 +37,7 @@ var keys = {
     d: false,
     q: false,
     e: false,
+    r: false,
     leftShift: false,
 }
 var rotationX = -Math.PI/2;
@@ -89,8 +87,13 @@ var leavesPositionsAmount = {value: 1};
 var leavesPositions = { value: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
 var leavesAnim = { value: true };
 
+
+const textureLoader = new THREE.TextureLoader();
+const texture = textureLoader.load('assets/grass.png');
+
 var leavesMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
+    map: texture,
 });
 
 leavesMaterial.defines.USE_UV = true;
@@ -141,12 +144,6 @@ leavesMaterial.onBeforeCompile = (program) => {
             gl_Position = projectionMatrix * mvPosition;
         `)
 
-    program.fragmentShader = program.fragmentShader
-        .replace("#include <color_fragment>", `
-            float clarity = vUv.y * vUv.y * 0.4 + 0.1;
-            vec3 baseColor = vec3(0.41, 1.0, 0.5);
-            diffuseColor.rgb *= baseColor * clarity;
-        `)
 }
 
 
@@ -364,6 +361,36 @@ loadPlayerModel({
     size: 16,
 });
 
+loadPlayerModel({
+    path: "assets/playerReloadingar.gltf", 
+    name: "playerReloadingar",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playerReloadingshotgun.gltf", 
+    name: "playerReloadingshotgun",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playerReloadingsniper.gltf", 
+    name: "playerReloadingsniper",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playerReloadingpistol.gltf", 
+    name: "playerReloadingpistol",
+    size: 16,
+});
+
+loadPlayerModel({
+    path: "assets/playerReloadingsmg.gltf", 
+    name: "playerReloadingsmg",
+    size: 16,
+});
+
 
 loadPlayerModel({
     path: "assets/playerDashing.gltf", 
@@ -400,6 +427,13 @@ var player = {
     score:0,
     highScore: 0,
     skin: "",
+    ammo: {
+        "pistol": 10,
+        "smg": 30,
+        "ar": 20,
+        "shotgun": 7,
+        "sniper": 3,
+    },
 }
 
 
@@ -748,36 +782,103 @@ createWall(15, 15, false);
 createWall(5, 5, false);
 createWall(-5, -5, true);
 createWall(-10, 15, true);
-createWall(10, -15, true);
-function createWall(x, z, value){
+createBuilding(10, -15, true);
 
-    createCrate(x, 1.5, z+1, value);
-    createCrate(x+1, 1.5, z+1, value);
-    createCrate(x-1, 1.5, z+1, value);
+function createBuilding(x, z, value){   
+    createBuildingWall(x-3, z, value);
+    createBuildingWall(x, z, value);
+       
+    createDoorWay(x+3, z, value);
 
-    createCrate(x, 0.5, z, value);
-    createCrate(x+1, 0.5, z, value);
-    createCrate(x-1, 0.5, z, value);
 
-    createCrate(x, 1.5, z, value);
-    createCrate(x+1, 1.5, z, value);
-    createCrate(x-1, 1.5, z, value);
+    createBuildingWall(-x-4, -z, !value);
 
-    createCrate(x+1, 2.5, z, value);
-    createCrate(x-1, 2.5, z, value);
+    createBuildingWall(-x-1, -z, !value);
 
-    createCrate(x+2, 0.5, z+1, value);
-    createCrate(x-2, 0.5, z+1, value);
+    createBuildingWall(-x-4, -z, !value);
+
+    createBuildingWall(-x+2, -z, !value);
+
+
+    createBuildingWall(x, z+8, value);
+
+    createBuildingWall(x+3, z+8, value);
+    createDoorWay(x-3, z+8, value);
+
+    createBuildingWall(x-6, z+8, value);
+
+    createBuildingWall(x-6, z, value);
+
+
+    createBuildingWall(-x-1, -z-13, !value);
+
+    createBuildingWall(-x-4, -z-13, !value);
+
+    createBuildingWall(-x+2, -z-13, !value);
 }
 
+function createBuildingWall(x, z, value){
+    createStone(x, 0.5, z, value);
+    createStone(x+1, 0.5, z, value);
+    createStone(x-1, 0.5, z, value);
 
-function createCrate(x, y, z, value){
+    // createStone(x, 0.5, z+1, value);
+    createStone(x+1, 1.5, z, value);
+    createStone(x-1, 1.5, z, value);
+
+    createStone(x, 2.5, z, value);
+    createStone(x+1, 2.5, z, value);
+    createStone(x-1, 2.5, z, value);
+
+    createStone(x, 3.5, z, value);
+    createStone(x+1, 3.5, z, value);
+    createStone(x-1, 3.5, z, value);
+}
+function createDoorWay(x, z, value){
+
+    createStone(x+1, 0.5, z, value);
+    createStone(x-1, 0.5, z, value);
+
+    createStone(x+1, 1.5, z, value);
+    createStone(x-1, 1.5, z, value);
+
+    createStone(x, 2.5, z, value);
+    createStone(x+1, 2.5, z, value);
+    createStone(x-1, 2.5, z, value);
+
+    createStone(x, 3.5, z, value);
+    createStone(x+1, 3.5, z, value);
+    createStone(x-1, 3.5, z, value);
+}
+
+function createWall(x, z, value){
+
+    createPlank(x, 1.5, z+1, value);
+    createPlank(x+1, 1.5, z+1, value);
+    createPlank(x-1, 1.5, z+1, value);
+
+    createPlank(x, 0.5, z, value);
+    createPlank(x+1, 0.5, z, value);
+    createPlank(x-1, 0.5, z, value);
+
+    createPlank(x, 1.5, z, value);
+    createPlank(x+1, 1.5, z, value);
+    createPlank(x-1, 1.5, z, value);
+
+    createPlank(x+1, 2.5, z, value);
+    createPlank(x-1, 2.5, z, value);
+
+    createStone(x+2, 0.5, z+1, value);
+    createStone(x-2, 0.5, z+1, value);
+}
+
+function createPlank(x, y, z, value){
     if(value){
         var temp = x;
         x = z;
         z = temp;
     }
-    var crate = {
+    var stone = {
     mesh: new THREE.Group(),
     body: new CANNON.Body({
         mass: 0,
@@ -788,9 +889,32 @@ function createCrate(x, y, z, value){
         // angularFactor: new CANNON.Vec3(0, 0, 0),
     }),
     }
-    loadSprite(crate.mesh, "model.gltf", 16);
-    addToWorld(crate);
-    gameObjects.push(crate);
+    loadSprite(stone.mesh, "assets/oakPlank.gltf", 16);
+    addToWorld(stone);
+    gameObjects.push(stone);
+}
+
+
+function createStone(x, y, z, value){
+    if(value){
+        var temp = x;
+        x = z;
+        z = temp;
+    }
+    var stone = {
+    mesh: new THREE.Group(),
+    body: new CANNON.Body({
+        mass: 0,
+        shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
+        angularDamping: 0.3,
+        position: new CANNON.Vec3(x, y, z),
+        material: noFrictionMaterial,
+        // angularFactor: new CANNON.Vec3(0, 0, 0),
+    }),
+    }
+    loadSprite(stone.mesh, "assets/stoneBrick.gltf", 16);
+    addToWorld(stone);
+    gameObjects.push(stone);
 }
 
 
@@ -865,6 +989,18 @@ function switchSkins(skinName){
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 var grassUpdateVal = 0;
 var bulletTimer = 0;
 var bulletDelay = 5;
@@ -872,9 +1008,6 @@ var bulletDelay = 5;
 function renderGame() {
     
 player.mesh.children.forEach(child => player.mesh.remove(child));
-
-    
-    
     
     if(player.gun == "pistol"){
         bulletDelay = 9;
@@ -895,58 +1028,41 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
         }
         bulletTimer++;
 
-
         switchSkins("playerShooting" + player.gun);
+    } else if (reloading) {
+    switchSkins("playerReloading" + player.gun);
     } else if (player.sprinting){
         switchSkins("playerDashing");
     } else if(playerModels["playerHolding" + player.gun]){
         switchSkins("playerHolding" + player.gun);
     }
-
-    physicsWorld.step(timeStep);
-    
+    physicsWorld.step(1/60);
 
     if(window.location.hostname == "localhost"){
         cannonDebugger.update();
     }
-
-
-
     originalAngularFactor = player.body.angularFactor.clone();
-
     
     player.body.quaternion.setFromAxisAngle(yAxis, -rotationX);
 
-    
-
-
-    
-    
     updateEnemyMovement();
-    
-    
     updateMovement();
-    
     checkForControllerInputs();
-    
-
     updateShooting();
-    
-    
-    
-
-    
-
     ground.mesh.position.copy(ground.body.position);
     ground.mesh.quaternion.copy(ground.body.quaternion);
     player.mesh.position.copy(player.body.position);
     player.mesh.quaternion.copy(player.body.quaternion);
 
     setCameraPosition(3);
+
+
+    camera.aspect = window.innerWidth/window.innerHeight;
+    renderer.setSize(window.innerWidth, window.innerHeight);
     camera.updateProjectionMatrix();
     renderGameObjects();
 
-
+    checkForReloading();
     checkForAiming();
     // composer.render();
     renderer.render(scene, camera);
@@ -966,6 +1082,7 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
     }
     HTMLObj("highScore").innerHTML = "HS: " + player.highScore;
     HTMLObj("score").innerHTML = "Score: " + player.score;
+    HTMLObj("ammoLeft").innerHTML = player.ammo[player.gun];
 // consoleLog(bulletPool.length);
     HTMLObj("bulletPoolCount").innerHTML = "BulletPool: " + bulletPool.length;
    
@@ -1003,6 +1120,43 @@ var runnedSuper = false;
 
 
 
+var reloading = false;
+//// RELOADING ////
+async function checkForReloading(){
+    if(!player.sprinting && !keys.leftShift && !reloading  && (keys.r || player.ammo[player.gun] == 0)){
+        reloading = true;
+        var reloadTime = 0;
+        var ammoAmount = 0;
+        switch (player.gun) {
+            case "pistol":
+                ammoAmount = 10;
+                reloadTime = 1000;
+                break;
+            case "smg":
+                ammoAmount  = 30;
+                reloadTime = 1000;
+                break;
+            case "ar":
+                ammoAmount = 20;
+                reloadTime = 1500;
+                break;
+            case "shotgun":
+                ammoAmount = 7;
+                reloadTime = (ammoAmount - player.ammo[player.gun])*500;
+                break;
+            case "sniper":
+                ammoAmount = 3;
+                reloadTime = 3000;
+                break;
+        }
+        if(player.ammo[player.gun] < ammoAmount){
+            player.ammo[player.gun] = "-";
+            await downtime(reloadTime);
+            player.ammo[player.gun] = ammoAmount;
+        } 
+        reloading = false;
+    }
+}
 
 
 
@@ -1137,19 +1291,29 @@ function switchGunTo(gun){
 
 
 HTMLObj("pistol").addEventListener("click", (e) => {
-    gunNumber = 1;
+    if(!reloading){
+        gunNumber = 1;
+    }
 });
 HTMLObj("ar").addEventListener("click", (e) => {
-   gunNumber = 3;
+   if(!reloading){
+        gunNumber = 3;
+    }
 });
 HTMLObj("smg").addEventListener("click", (e) => {
-   gunNumber = 2;
+   if(!reloading){
+        gunNumber = 2;
+    }
 });
 HTMLObj("sniper").addEventListener("click", (e) => {
-   gunNumber = 4;
+   if(!reloading){
+        gunNumber = 4;
+    }
 });
 HTMLObj("shotgun").addEventListener("click", (e) => {
-    gunNumber = 5;
+    if(!reloading){
+        gunNumber = 5;
+    }
 });
 
 
@@ -1243,7 +1407,8 @@ async function updateShooting(){
     } else {
         inPlayingField = true;
     }
-    if(keys.q && player.canShoot && inPlayingField && !player.sprinting){
+    if(keys.q && player.canShoot && inPlayingField && !player.sprinting && player.ammo[player.gun] > 0){
+        player.ammo[player.gun]--;
         player.canShoot = false;
         shoot();
         shotBullet = true;
@@ -1599,19 +1764,13 @@ var normalize = 1;
         velocity.add(forwardVector.clone().multiplyScalar(player.speed*5));
     } 
 
-    if(keys.upArrow && !player.sprinting && player.canSprint && !keys.leftShift){
+    if(keys.upArrow && !player.sprinting && player.canSprint && !keys.leftShift && !reloading){
         player.canSprint = false;
         player.sprinting = true;
         cameraOutTween.start();
 
     }
-    
-    
-//     else if(camera.fov > 75 && !player.sprinting && !keys.leftShift){
-//             cameraOutTween.stop();
-//             camera.fov -= 1.5;
-//  }
-  
+
     // Set the velocity to the box body
     
     player.body.velocity.set(velocity.x, player.body.velocity.y, velocity.z);
@@ -1636,7 +1795,7 @@ window.socket.on('updatePlayers', (otherPlayersObject)=>{
         if(id == window.socket.id){
             continue;
         }
-        var otherPlayer = otherPlayersObject[id];
+                var otherPlayer = otherPlayersObject[id];
         if(!otherPlayers[id]){
             otherPlayers[id] = {
                 mesh: new THREE.Group(),
@@ -1649,20 +1808,8 @@ window.socket.on('updatePlayers', (otherPlayersObject)=>{
                     
                 }),
                 leavesID: amountOfOtherPlayers+1,
-                playerSkins: {
-                    "playerHoldingpistol": playerModels["playerHoldingpistol"].clone(),
-                    "playerDashing": playerModels["playerDashing"].clone(),
-                    "playerShootingpistol": playerModels["playerShootingpistol"].clone(),
-                    
-                    "playerHoldingsmg": playerModels["playerHoldingsmg"].clone(),
-                    "playerShootingsmg": playerModels["playerShootingsmg"].clone(),
-                     "playerHoldingar": playerModels["playerHoldingar"].clone(),
-                    "playerShootingar": playerModels["playerShootingar"].clone(),
-                     "playerHoldingsniper": playerModels["playerHoldingsniper"].clone(),
-                    "playerShootingsniper": playerModels["playerShootingsniper"].clone(),
-                     "playerHoldingshotgun": playerModels["playerHoldingshotgun"].clone(),
-                    "playerShootingshotgun": playerModels["playerShootingshotgun"].clone(),
-                }
+                playerSkins: {},
+                
 
             }
 
@@ -1684,34 +1831,40 @@ window.socket.on('updatePlayers', (otherPlayersObject)=>{
             amountOfOtherPlayers++;
             leavesOccupied[amountOfOtherPlayers] = true;
         } else {
+            if(otherPlayers[id] && otherPlayer){
 
+            for(var name in playerModels){
+                if(!otherPlayers[id].playerSkins[name]){
+                    otherPlayers[id].playerSkins[name] = playerModels[name].clone();
+                }
+            }
+
+
+            
             otherPlayers[id].mesh.children.forEach(child => otherPlayers[id].mesh.remove(child));
-            if (otherPlayers[id].playerSkins[otherPlayer.skin] instanceof THREE.Object3D) {
+          
+          
+            if (otherPlayers[id].playerSkins[otherPlayer.skin] instanceof THREE.Object3D && otherPlayers[id].playerSkins[otherPlayer.skin]) {
     otherPlayers[id].mesh.add(otherPlayers[id].playerSkins[otherPlayer.skin]);
-} else {
-    consoleLog("NOT");
 }
 
             if(otherPlayer.position.x < 44){
-                otherPlayers[id].body.position.x = otherPlayer.position.x;
-                otherPlayers[id].body.position.y = otherPlayer.position.y;
-                otherPlayers[id].body.position.z = otherPlayer.position.z;
-                otherPlayers[id].body.quaternion.copy(otherPlayer.quaternion);
-            otherPlayers[id].body.angularFactor.set(0, 0, 0);
-            otherPlayers[id].mesh.position.copy(otherPlayers[id].body.position);
-            otherPlayers[id].mesh.quaternion.copy(otherPlayers[id].body.quaternion);
+
+                moveEnemyPlayer(otherPlayer, id);
+            
             
 
 
-                    playerNameTags[id].position.copy(otherPlayers[id].mesh.position);
-                    playerNameTags[id].geometry.computeBoundingBox();
-                    const width = playerNameTags[id].geometry.boundingBox.max.x - playerNameTags[id].geometry.boundingBox.min.x;
-                    playerNameTags[id].position.x += width/2 * forwardVector.z;
-                    playerNameTags[id].position.z += width/2 * -forwardVector.x;
-                    playerNameTags[id].position.y += 1;
-                    playerNameTags[id].lookAt(camera.position);
-                
+            if(playerNameTags[id]){                   playerNameTags[id].position.copy(otherPlayers[id].mesh.position);
+                                playerNameTags[id].geometry.computeBoundingBox();
+                                const width = playerNameTags[id].geometry.boundingBox.max.x - playerNameTags[id].geometry.boundingBox.min.x;
+                                playerNameTags[id].position.x += width/2 * forwardVector.z;
+                                playerNameTags[id].position.z += width/2 * -forwardVector.x;
+                                playerNameTags[id].position.y += 1;
+                                playerNameTags[id].lookAt(camera.position);
 
+            }               
+                
 
 
 
@@ -1753,7 +1906,11 @@ window.socket.on('updatePlayers', (otherPlayersObject)=>{
                 playerNameTags[id].position.z = 0;
                 playerNameTags[id].position.y = -8;
             }
+
+            }
         }
+
+
     }
     for (var id in otherPlayers){
         if(!otherPlayersObject[id]){
@@ -1775,7 +1932,16 @@ window.socket.on('updatePlayers', (otherPlayersObject)=>{
 
 
 
-
+function moveEnemyPlayer(otherPlayer, id){
+        otherPlayers[id].body.position.x = otherPlayer.position.x;
+            
+                otherPlayers[id].body.position.y = otherPlayer.position.y;
+                otherPlayers[id].body.position.z = otherPlayer.position.z;
+                otherPlayers[id].body.quaternion.copy(otherPlayer.quaternion);
+            otherPlayers[id].body.angularFactor.set(0, 0, 0);
+            otherPlayers[id].mesh.position.copy(otherPlayers[id].body.position);
+            otherPlayers[id].mesh.quaternion.copy(otherPlayers[id].body.quaternion);
+}
 
 
 
@@ -2137,7 +2303,6 @@ function startAnimating(fps) {
     fpsInterval = 1000 / fps;
     then = Date.now();
     startTime = then;
-    // await downtime(1000);
     animate();
     
 }
@@ -2148,18 +2313,8 @@ function animate(delta) {
     grassUpdateVal += 1/240;
     leavesTime.value = grassUpdateVal;
     leavesAnim.value = anim;
-    // leavesMaterial.uniforms.anim.value = anim;
-
-    // leavesMaterial..uTime.value = grassUpdateVal;
-    // leavesMaterial.uniformsNeedUpdate = true;
     leavesPositionsAmount.value = amountOfOtherPlayers + 1;
     leavesPositions.value[0].copy(player.mesh.position);
-    // leavesMaterial.uniforms.positions.value[0].copy(player.mesh.position);
-    // leavesMaterial.uniforms.positions.value[1].copy(sphere.mesh.position);
-    // leavesMaterial.uniforms.positions.value[2].copy(crate.mesh.position);
-    // enemies.forEach((enemy, index)=>{
-    //     leavesMaterial.uniforms.positions.value[index+3].copy(enemy.mesh.position);
-    // })
     
     requestAnimationFrame(animate);
     now = Date.now();
@@ -2220,29 +2375,33 @@ addEventListener('keydown', function(event) {
     if(key == "e"){
         keys.e = true;
     }
+    if(key == "r"){
+        keys.r = true;
+    }
     if(key == " "){
         player.jumping = true;
     }
-
-    if(event.code == "Digit1"){
-        consoleLog("ASDASD");
-        gunNumber = 1;
+    if(!reloading){
+        if(event.code == "Digit1"){
+            gunNumber = 1;
+        }
+        if(event.code == "Digit2"){
+            gunNumber = 2;
+        }
+        if(event.code == "Digit3"){
+            gunNumber = 3;
+        }
+        if(event.code == "Digit4"){
+            gunNumber = 4;
+        }
+        if(event.code == "Digit5"){
+            gunNumber = 5;
+        }           
+        if(key == "shift"){
+            keys.leftShift = true;
+        }
     }
-    if(event.code == "Digit2"){
-        gunNumber = 2;
-    }
-    if(event.code == "Digit3"){
-        gunNumber = 3;
-    }
-    if(event.code == "Digit4"){
-        gunNumber = 4;
-    }
-    if(event.code == "Digit5"){
-        gunNumber = 5;
-    }
-    if(key == "shift"){
-        keys.leftShift = true;
-    }
+    
 });
 var gunNumber = 1;
 addEventListener('keyup', function(event) {
@@ -2278,6 +2437,9 @@ addEventListener('keyup', function(event) {
     if(key == "e"){
         keys.e = false;
     }
+    if(key == "r"){
+        keys.r = false;
+    }
     if(key == " "){
         player.jumping = false;
     }
@@ -2293,17 +2455,20 @@ function checkForControllerInputs(){
         const leftJoystickY = controller.axes[1]; 
         const rightJoystickX = controller.axes[2]; 
         const buttonA = controller.buttons[0].pressed; 
+        const buttonX = controller.buttons[2].pressed; 
         const buttonY = controller.buttons[3].pressed; 
         const leftGun = controller.buttons[4].pressed; 
         const rightGun = controller.buttons[5].pressed; 
-        if(leftGun && !pressSwapped){
-            pressSwapped = true;
-            gunNumber-= 1;
-        } else if (rightGun && !pressSwapped){
-            pressSwapped = true;
-            gunNumber+=1;
-        } else if(!leftGun && !rightGun){
-            pressSwapped = false;
+        if(!reloading){
+            if(leftGun && !pressSwapped){
+                pressSwapped = true;
+                gunNumber-= 1;
+            } else if (rightGun && !pressSwapped){
+                pressSwapped = true;
+                gunNumber+=1;
+            } else if(!leftGun && !rightGun){
+                pressSwapped = false;
+            }
         }
         const aimTrigger = controller.buttons[6].pressed; 
         const shootTrigger = controller.buttons[7].pressed; 
@@ -2331,6 +2496,11 @@ function checkForControllerInputs(){
             player.jumping = true;
         } else if(!buttonA){
             player.jumping = false;
+        }
+        if(buttonA){
+            keys.r = true;
+        } else if(!buttonA){
+            keys.r = false;
         }
         if(aimTrigger){
             keys.leftShift = true;

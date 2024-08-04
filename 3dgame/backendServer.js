@@ -4,7 +4,7 @@ const socketIo = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {pingInterval: 2000, pingTimeout:5000});
+const io = socketIo(server, {pingInterval: 1000, pingTimeout:1000});
 
 
 

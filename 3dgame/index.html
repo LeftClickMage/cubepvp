@@ -19,6 +19,9 @@
 				user-select: none; /* Standard syntax */
 				
 			}
+			img {
+				image-rendering: pixelated;
+			}
 			#loadingPage {
 				position: absolute;
 				width: 100%;
@@ -72,25 +75,45 @@
 		<p id="switchControls" class="btn btn-info border-dark border-5">CONTROLS</p>
 		<p id="switchPerformance" class="btn btn-info border-dark border-5">GRAPHICS - <b><span id="graphicsValue">ULTRA HIGH</span></b></p>
 		<br>
-			<p style="color:white; font-family:Ubuntu; display:none; width:300px;" id = "controlsText"><u><b>Controls: (KBM | Controller)</b></u><br><b>Movement</b> - WASD | L Joystick<br><b>Jump</b> - Space | A<br><b>Look</b> - Arrow Keys | R Joystick<br><b>Dash</b> - Up Arrow | LS<br><b>Shoot</b> - Q | RT<br><b>Change Gun</b> - Numbers | LB/RB<br><b>Aim</b> - Shift | LT<br><b>Super</b> - E | Y</p>
+		<div id="controlsText" style="color:white; font-family:Ubuntu; display:none; width:300px;" >
+			<p><u><b>Controls: (KBM | Controller)</b></u><br><b>Movement</b> - WASD | L Joystick<br><b>Jump</b> - Space | A<br><b>Look</b> - Arrow Keys | R Joystick<br><b>Dash</b> - Up Arrow | LS<br><b>Shoot</b> - Q | RT<br><b>Reload</b> - R | X<br><b>Change Gun</b> - Numbers | LB/RB<br><b>Aim</b> - Shift | LT<br><b>Super</b> - E | Y<br>
+			
+			 <!-- <br><b>SENSITIVITY</b><br>
+			 <input type="range" class="form-range" min="0" max="100" id="customRange">
+			 <p id = "saveSettings" class="btn btn-info border-dark border-5">Save</p>
+			  -->
+			 </p>
+			 </div>
+
 	   </div>
 
 
 	   <div style="position:absolute; right:2%; bottom:2%; color:white; font-size:20px; ">
+
+
 		<div style="display:flex; position:absolute; right:	0px; bottom:110px;">
-		<div style="width:100px; height:100px; background-color:white; margin-right:10px; color:black;" id = "gunUI" class="border border-dark border-5 text-center pt-1">Pistol</div>
 
-		<div style="position:absolute; width:100px;height:100px; background-color:red; left:110px;z-index:1;" class="bg-dark"></div>
-		<div style="width:100px; height:100px; background: linear-gradient(to top, green, green); background-size: 1% 1%;margin-right:10px;z-index:2;" id = "shootUI" class="border border-dark border-5 text-center pt-1"><b>SHOOT</b></div>
 		
-		<div style="position:absolute; width:100px;height:100px; left:220px;z-index:3;" class="bg-dark"></div>
+<div style="width:100px; height:100px; background-color:white; margin-right:10px; color:black;" class="d-flex border border-dark border-5 align-items-center justify-content-center">
+			<p id="gunUI" class="text-dark mt-3">Pistol</p>
+		</div>
+		
+		<div style="width:100px; height:100px; background-color:white; margin-right:10px; color:black;" class="d-flex border border-dark border-5 align-items-center justify-content-center">
+			<span id="ammoLeft" class="display-1"></span>
+		</div>
 
-		<div style="width:100px; height:100px; background: linear-gradient(to top, green, green); background-size: 1% 1%;margin-right:10px;z-index:4;" id = "dashUI" class="border border-dark border-5 text-center pt-1"><b>DASH</b></div>
+		<div style="position:absolute; width:100px;height:100px; background-color:red; left:220px;z-index:1;" class="bg-dark"></div>
+
+		<div style="width:100px; height:100px; background: linear-gradient(to top, green, green); background-size: 1% 1%;margin-right:10px;z-index:2;" id = "shootUI" class="border border-dark border-5 text-center pt-1"><img src="assets/shoot.png" width="80px"></div>
+		
+		<div style="position:absolute; width:100px;height:100px; left:330px;z-index:3;" class="bg-dark"></div>
+
+		<div style="width:100px; height:100px; background: linear-gradient(to top, green, green); background-size: 1% 1%;margin-right:10px;z-index:4;" id = "dashUI" class="border border-dark border-5 text-center pt-1"><img src="assets/dash.png" width="80px"></div>
 
 
-		<div style="position:absolute; width:100px;height:100px; left:330px;z-index:5;" class="bg-dark"></div>
+		<div style="position:absolute; width:100px;height:100px; left:440px;z-index:5;" class="bg-dark"></div>
 
-		<div style="width:100px; height:100px; background: linear-gradient(to top, green, green); background-size: 1% 1%;margin-right:10px;z-index:6;" id = "superUI" class="border border-dark border-5 text-center pt-1"><b>SUPER</b></div>
+		<div style="width:100px; height:100px; background: linear-gradient(to top, green, green); background-size: 1% 1%;margin-right:10px;z-index:6;" id = "superUI" class="border border-dark border-5 text-center pt-1"><img src="assets/super.png" width="80px"></div>
 
 		</div>
 
@@ -124,7 +147,7 @@
 			
 			
 		</div>
-		<script type="module" src="index.js?version=0.9.13"></script>
+		<script type="module" src="index.js?version=0.10.13"></script>
 	</body>
 </html>
 
@@ -154,6 +177,7 @@
 0.8.12 Hopeful patch to game crashing.
 0.8.13 silent patch to fix player mesh not dissapearing when entering practice mode
 0.9.13 Third Person Camera!! Added images for gun hotbar instead of words. Removed console from public access. Added aiming TWEENS. Fixed bug when not able to swap between guns when aiming. Crosshair is always in the center now. Player now moves in sync with camera.  
+0.10.13 Reloading system, added more icons to UI, added a stone texture, added a grass texture, new building style. fixed large bug when joining, still small joining lag though. 
  -->
 
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
