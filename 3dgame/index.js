@@ -782,8 +782,8 @@ gameObjects.push(sphere);
 createWall(10, 0, false);
 createWall(10, 0, true);
 createWall(-10, -10, false);
-createWall(10, -18, false);
-createWall(15, 15, false);
+// createWall(10, -18, false);
+// createWall(15, 15, false);
 createWall(5, 5, false);
 createWall(-5, -5, true);
 createWall(-10, 15, true);
@@ -1128,7 +1128,7 @@ var runnedSuper = false;
 var reloading = false;
 //// RELOADING ////
 async function checkForReloading(){
-    if(!player.sprinting && !keys.leftShift && !reloading  && (keys.r || player.ammo[player.gun] == 0)){
+    if(!player.sprinting && !keys.leftShift && !reloading  && (keys.r || player.ammo[player.gun] == 0 && keys.q)){
         reloading = true;
         var reloadTime = 0;
         var ammoAmount = 0;
