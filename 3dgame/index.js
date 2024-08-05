@@ -934,9 +934,9 @@ createWall(-10, 15, true);
 createTree(-10, -10);
 createTree(-10, 10);
 createTree(15, -4);
-createTree(10, 10);
+// createTree(10, 10);
 createTree(7, 5);
-createTree(0, -7);
+// createTree(0, -7);
 
 createTree(-15, 0);
 createTree(0, -15);
@@ -1986,7 +1986,7 @@ function renderGameObjects(){
 function updateMovement() {
     
     
-    if(player.body.position.y < -10 || player.body.position.y > 15){
+    if(player.body.position.y < -10 || player.body.position.y > 16){
         respawnPlayer();
     }
     checkIfCanJump();

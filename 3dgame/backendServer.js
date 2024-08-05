@@ -20,7 +20,7 @@ io.on('connection', (socket) => {
     players[socket.id] = {
         position: {
             x: 30, 
-            y: 10, 
+            y: 20, 
             z: 0,
         },
         forwardVector: {},
