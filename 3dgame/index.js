@@ -458,9 +458,11 @@ player.body.addEventListener( "collide", function (e) {
             // if(player.mesh.position.x<24){
                 if(player.health > 0){
                     hitPlayer();
-                    calcDamage(bullet.gun);
-                    damageOverlayTimer = 0;
-                    showDamageOverlay = true;
+                    if(inPlayingField){
+                        calcDamage(bullet.gun);
+                        damageOverlayTimer = 0;
+                        showDamageOverlay = true;
+                    }
                 }
 
             // }      
@@ -482,7 +484,7 @@ function calcDamage(gun){
             player.health -= 30;
             break;
         case "shotgun":
-            player.health -= 25;
+            player.health -= 15;
             break;
         case "sniper":
             player.health -= 95;
