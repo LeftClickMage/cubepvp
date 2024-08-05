@@ -479,7 +479,7 @@ var player = {
         shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
         material: new CANNON.Material(),
         angularDamping: 0.3,
-        position: new CANNON.Vec3(30, 15, 0),
+        position: new CANNON.Vec3(30, 8, 0),
         
     }),
     jumping: false,
@@ -2228,7 +2228,7 @@ function removeMesh(mesh){
 async function respawnPlayer(){
     await downtime(100);
     player.body.velocity.set(0, 0, 0);
-    player.body.position.set(30, 10, 0);
+    player.body.position.set(30, 8, 0);
     rotationX = -Math.PI/2;
     
 }
