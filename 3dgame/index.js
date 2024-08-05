@@ -278,11 +278,15 @@ function loadPlayerModel({path, size, name}){
                 node.receiveShadow = true; 
             }
         })
+
        
        playerModels[name] = gltfScene.scene; 
 
         playerModels[name].position.set(0, -size/32, 0);
         playerModels[name].quaternion.setFromAxisAngle(yAxis, -90 * degreeToRadian);
+        // if(name == "playerHoldingpistol"){
+        //     consoleLog("loaded");
+        // }
         
        
     });
@@ -386,7 +390,7 @@ loadPlayerModel({
 
 
 loadPlayerModel({
-    path: "assets/playerDashing.gltf", 
+    path: "assets/playerDashing.glb", 
     name: "playerDashing",
     size: 16,
 });
@@ -402,7 +406,7 @@ var player = {
         shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
         material: new CANNON.Material(),
         angularDamping: 0.3,
-        position: new CANNON.Vec3(30, 10, 0),
+        position: new CANNON.Vec3(30, 15, 0),
         
     }),
     jumping: false,
@@ -459,7 +463,8 @@ player.body.addEventListener( "collide", function (e) {
                 if(player.health > 0){
                     hitPlayer();
                     if(inPlayingField){
-                        calcDamage(bullet.gun);
+                        player.health -= calcDamage(bullet.gun);
+                        
                         damageOverlayTimer = 0;
                         showDamageOverlay = true;
                     }
@@ -475,24 +480,25 @@ player.body.addEventListener( "collide", function (e) {
 function calcDamage(gun){
     switch (gun){
         case "pistol":
-            player.health -= 40;
+            return 40;
             break;
         case "smg":
-            player.health -= 20;
+            return 20;
             break;
         case "ar":
-            player.health -= 30;
+            return 30;
             break;
         case "shotgun":
-            player.health -= 15;
+            return 15;
             break;
         case "sniper":
-            player.health -= 95;
+            return 95;
             break;
         case "super":
-            player.health -= 100;
+            return 100;
             break;
     }
+    return 0;
 }
 
 
@@ -1328,12 +1334,12 @@ HTMLObj("switchPerformance").addEventListener("click", (e) => {
         shadows(shadowsOn);
         grassShadows = false;
         grassShadowsChanger();
-        grass.receiveShadow = true;
+        grass.receiveShadow = false;
         anim = true;
     } else if(currentGraphicsValue == "LOW"){
         currentGraphicsValue = "MED";
         
-        shadowsOn = true;
+        shadowsOn = false;
         shadows(shadowsOn);
         grassShadows = false;
         grassShadowsChanger();
@@ -2100,13 +2106,20 @@ function removeMesh(mesh){
 async function respawnPlayer(){
     await downtime(100);
     player.body.velocity.set(0, 0, 0);
-    player.body.position.set(0, 11, 0);
+    player.body.position.set(30, 10, 0);
+    rotationX = -Math.PI/2;
+    
+}
+
+async function respawnPlayerByEnemyDeath(){
+    await downtime(100);
+    player.body.velocity.set(0, 0, 0);
     if(player.highScore < player.score){
         player.highScore = player.score;
     }
     player.score = 0;
-    player.body.position.set(30, 10, 0);
-    rotationX = -Math.PI/2;
+    player.body.position.set(40, 10, 0);
+    rotationX = Math.PI/2;
     
 }
 
@@ -2253,6 +2266,7 @@ async function killPlayer(){
 
 async function killEnemy(enemy){
     enemy.body.sleep();
+    enemy.health = 100;
     player.score += 50;
     enemy.body.position.set(Math.random() * 40 - 20+69, 5, Math.random() * 40 - 20);
     await downtime(1000);
@@ -2276,13 +2290,17 @@ function addEnemy(){
         position: new CANNON.Vec3(Math.random()*40-20+69, 3, Math.random()*40-20),
         material: new CANNON.Material(),
     }),
+    health: 50,
 }
 
 enemy.body.addEventListener("collide", function (e) {
     var contact = e.contact;
     bullets.forEach((bullet)=>{
         if(contact.bi == bullet.body || contact.bj == bullet.body){
-            killEnemy(enemy);          
+            enemy.health -= calcDamage(player.gun);
+            if(enemy.health <= 0){
+                killEnemy(enemy);    
+            }      
             if(player.gun !== "sniper"){
                 destroy(bullet);
             }
@@ -2290,7 +2308,7 @@ enemy.body.addEventListener("collide", function (e) {
         }
     });
     if(contact.bi == player.body || contact.bj == player.body){
-        respawnPlayer();
+        respawnPlayerByEnemyDeath();
     }
 
 }); 
