@@ -427,6 +427,7 @@ var player = {
         "shotgun": 7,
         "sniper": 3,
     },
+    health: 100,
 }
 
 
@@ -453,13 +454,45 @@ player.body.addEventListener( "collide", function (e) {
 
     bullets.forEach((bullet)=>{
         if(contact.bi == bullet.body || contact.bj == bullet.body){
-            if(player.mesh.position.x<24){
-                killPlayer();
-            }      
+            destroy(bullet);
+            // if(player.mesh.position.x<24){
+                if(player.health > 0){
+                    hitPlayer();
+                    calcDamage(bullet.gun);
+                    damageOverlayTimer = 0;
+                    showDamageOverlay = true;
+                }
+
+            // }      
         }
     });
     
 });
+
+
+function calcDamage(gun){
+    switch (gun){
+        case "pistol":
+            player.health -= 45;
+            break;
+        case "smg":
+            player.health -= 10;
+            break;
+        case "ar":
+            player.health -= 25;
+            break;
+        case "shotgun":
+            player.health -= 30;
+            break;
+        case "sniper":
+            player.health -= 90;
+            break;
+        case "super":
+            player.health -= 100;
+            break;
+    }
+}
+
 
 
 const loader = new FontLoader();
@@ -1058,7 +1091,11 @@ function switchSkins(skinName){
 
 var grassUpdateVal = 0;
 var bulletTimer = 0;
+var prevPlayerPosition;
+var prevPlayerQuaternion;
 var bulletDelay = 5;
+var showDamageOverlay = false;
+var damageOverlayTimer = 0;
 //// GAME RENDER ////
 function renderGame() {
     
@@ -1091,7 +1128,11 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
     } else if(playerModels["playerHolding" + player.gun]){
         switchSkins("playerHolding" + player.gun);
     }
+
+    prevPlayerPosition = new THREE.Vector3(player.body.position.x, player.body.position.y, player.body.position.z);
+    prevPlayerQuaternion = new THREE.Quaternion().copy(player.body.quaternion);
     physicsWorld.step(1/60);
+
 
     if(window.location.hostname == "localhost"){
         cannonDebugger.update();
@@ -1119,6 +1160,23 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
 
     checkForReloading();
     checkForAiming();
+    if(damageOverlayTimer > 5){
+        damageOverlayTimer = 0;
+        showDamageOverlay = false;
+    } else if(showDamageOverlay){
+        damageOverlayTimer++;
+        HTMLObj("damageOverlay").style.display = "flex";
+    } else {
+         HTMLObj("damageOverlay").style.display = "none";
+    }
+
+    if(player.health <= 0){
+        killPlayer();
+    } else if(player.health < 100){
+        player.health += 2/60;
+    } else {
+        player.health = 100;
+    }
     // composer.render();
     renderer.render(scene, camera);
 
@@ -1138,7 +1196,7 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
     HTMLObj("highScore").innerHTML = "HS: " + player.highScore;
     HTMLObj("score").innerHTML = "Score: " + player.score;
     HTMLObj("ammoLeft").innerHTML = player.ammo[player.gun];
-// consoleLog(bulletPool.length);
+    HTMLObj("healthBar").style.width = player.health/100*290 + "px";
     HTMLObj("bulletPoolCount").innerHTML = "BulletPool: " + bulletPool.length;
    
     if(!runOnce){
@@ -1406,6 +1464,7 @@ HTMLObj("switchGrass").addEventListener("click", (e) => {
 
 addButtonListener("switchConsole", "consoleDiv", "inline-block");
 addButtonListener("switchControls", "controlsText", "inline-block");
+addButtonListener("weaponsInfo", "weaponsInfoText", "inline-block");
 
 
 // document.getElementById('controlsText').style.display = 'flex';
@@ -1458,11 +1517,15 @@ async function updateShooting(){
         bullet.mesh.quaternion.copy(bullet.body.quaternion);
         
     });
+
+
     if(player.mesh.position.x < 45 && player.mesh.position.x > 23 && player.mesh.position.y > 5){
         inPlayingField = false;
     } else {
         inPlayingField = true;
     }
+
+
     if(keys.q && player.canShoot && inPlayingField && !player.sprinting){
         if(player.ammo[player.gun] > 0){
             player.ammo[player.gun]--;
@@ -1503,6 +1566,7 @@ function createBullet(x, z, width, height, playerX, playerY, playerZ, quaternion
     bullet.prevVelZ = z*50;
     bullet.body.velocity.set(bullet.prevVelX, bullet.prevVelY, bullet.prevVelZ);
     bullet.playerID = 1;
+    bullet.gun = "super";
 
 }
 window.socket.on("playerSupered", ({x, y, z, quaternion, id})=>{
@@ -1594,6 +1658,7 @@ function shoot(){
 
             window.socket.emit('getCurrentBulletID');
             bullet.id = bulletID;
+            bullet.gun = player.gun;
             
         }
         window.socket.emit("updateBullets");
@@ -1621,6 +1686,7 @@ function shoot(){
             bullet.body.angularFactor.set(0, 0, 0);
             window.socket.emit('getCurrentBulletID');
             bullet.id = bulletID;
+            bullet.gun = player.gun;
             window.socket.emit("updateBullets");
     }
 
@@ -1659,9 +1725,13 @@ function createSmallBullet(){
     }
     bullet.body.material.restitution = 0;
     bullet.body.material.friction = 0;
+
+
     bullet.body.addEventListener( "collide", async function (event) {
         destroy(bullet);      
     });
+
+
     return bullet;
 }
 var arStarted = false;
@@ -2081,6 +2151,7 @@ function shootOtherPlayerBullet({x, y, z, quaternion, forwardVector, bulletSpeed
             bullet.body.angularFactor.set(0, 0, 0);
             bullet.id = bullet_id;
             bullet.playerID = player_id;
+            bullet.gun = gun;
         }
     } else {
         var bullet;
@@ -2102,6 +2173,7 @@ function shootOtherPlayerBullet({x, y, z, quaternion, forwardVector, bulletSpeed
         bullet.body.velocity.set(bullet.prevVelX, bullet.prevVelY, bullet.prevVelZ);
         bullet.body.angularVelocity.set(0, 0, 0);
         bullet.body.angularFactor.set(0, 0, 0);
+        bullet.gun = gun;
     }
 }
 
@@ -2147,15 +2219,30 @@ function shadows(value) {
     });
 }
 
-async function killPlayer(){
-    await downtime(100);
+async function hitPlayer(){
+    player.body.quaternion.copy(prevPlayerQuaternion);
+    await downtime(0);
     player.body.velocity.set(0, 0, 0);
-    player.body.position.set(0, 11, 0);
+    // player.body.position.set(30, 7, 0); //0, 11, 0
     if(player.highScore < player.score){
         player.highScore = player.score;
     }
     player.score = 0;
-    player.body.position.set(0, 11, 0);
+    player.body.position.copy(prevPlayerPosition);
+    player.body.quaternion.copy(prevPlayerQuaternion);
+    // rotationX = -Math.PI/2;
+    
+}
+async function killPlayer(){
+    player.body.quaternion.copy(prevPlayerQuaternion);
+    await downtime(0);
+    player.body.velocity.set(0, 0, 0);
+    player.body.position.set(0, 11, 0); //0, 11, 0
+    if(player.highScore < player.score){
+        player.highScore = player.score;
+    }
+    player.score = 0;
+    player.health = 100;
     rotationX = -Math.PI/2;
     
 }

@@ -37,6 +37,17 @@
 				z-index: 1000;
 				font-size:50px;
         	}	
+			.damage-overlay {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(255, 0, 0, 0.3);
+				pointer-events: none; 
+				z-index: 0; 
+				display:none;
+        	}
 		</style>
 		<script>
 			document.onreadystatechange = function () {
@@ -48,6 +59,9 @@
 					document.getElementById("loadingPage").style.display = 'flex';
 				}
 			}
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+        });
 		</script>
 	</head>
 	<body>
@@ -63,15 +77,16 @@
 				}
 			}
 		</script>
-		<img src="assets/crosshair.png" width="25px" style="image-rendering: pixelated;position:absolute; left:52%; top:31%; transform:translate(-50%, 0%);" id="crosshair">
-    	<p style="position:absolute; left:100px; color:white; font-size:15px;" id="bulletPoolCount">BulletPool:</p>
 
-<p style="position:absolute; left:220px; color:white; font-size:25px;" id="highScore">HS:</p>
-<p style="position:absolute; left:350px; color:white; font-size:25px;" id="score">SCORE:</p>
+		<img src="assets/crosshair.png" width="25px" style="image-rendering: pixelated;position:absolute; left:52%; top:31%; transform:translate(-50%, 0%);" id="crosshair">
+    	<p style="position:absolute; left:100px; color:white; font-size:15px; z-index:1;" id="bulletPoolCount">BulletPool:</p>
+
+<p style="position:absolute; left:220px; color:white; font-size:25px; z-index:1;" id="highScore">HS:</p>
+<p style="position:absolute; left:350px; color:white; font-size:25px; z-index:1;" id="score">SCORE:</p>
 		<p style="position:absolute; top:50px; background-color:rgba(255, 255, 255, 0.5); font-family:Ubuntu; width:200px; height:350px; overflow:hidden; display:none;" id="consoleDiv">GAME CONSOLE: <br><input style="width:180px; margin-left:10px;" id="consoleInput" placeholder="Variable Name"><br><span id = "console"></span></p>
 
-		<div style="position:absolute; right:2%; top:2%;">
-		
+		<div style="position:absolute; right:2%; top:2%; z-index:1;">
+		<p id="weaponsInfo" class="btn btn-info border-dark border-5">WEAPONS INFO</p>
 		<p id="switchControls" class="btn btn-info border-dark border-5">CONTROLS</p>
 		<p id="switchPerformance" class="btn btn-info border-dark border-5">GRAPHICS - <b><span id="graphicsValue">ULTRA HIGH</span></b></p>
 		<br>
@@ -84,11 +99,23 @@
 			  -->
 			 </p>
 			 </div>
+			 <div id="weaponsInfoText" style="color:white; font-family:Ubuntu; display:none; width:300px;">
+			<p>
+
+
+			<b>Pistol</b> - 45 Damage/Bullet<br>
+			<b>SMG</b> - 10 Damage/Bullet<br>
+			<b>Rifle</b> - 25 Damage/Bullet<br>
+			<b>Sniper</b> - 90 Damage/Bullet<br>
+			<b>Shotgun</b> - 30 Damage/Bullet<br>
+			<b>Super</b> - 100 Damage/Bullet<br>
+			 </p>
+			 </div>
 
 	   </div>
 
 
-	   <div style="position:absolute; right:2%; bottom:2%; color:white; font-size:20px; ">
+	   <div style="position:absolute; right:2%; bottom:2%; color:white; font-size:20px; z-index:1; ">
 
 
 		<div style="display:flex; position:absolute; right:	0px; bottom:110px;">
@@ -131,9 +158,9 @@
 
 </div>
 
-		<div style="position:absolute; bottom:1%; left:1%;">
+		<div style="position:absolute; bottom:1%; left:1%; z-index:1;">
 		
-			<div style="display:none;" id="debugTools">
+			<div style="display:none; margin-bottom:25px;" id="debugTools">
 			<p id="switchConsole" class="btn btn-info border-dark border-5">CONSOLE</p>
 			<p id="switchAnim" class="btn btn-primary border-dark border-5">Anims ON</p>
 		<p id="switchShadow" class="btn btn-primary border-dark border-5">Shadows ON</p>
@@ -143,11 +170,24 @@
 				
 				<p id="bulletSpeedUpgrade" class="btn btn-danger border-dark border-5">Upgrade Bullet Speed</p>
 
+
 			</div>
 			
+		
+
 			
 		</div>
-		<script type="module" src="index.js?version=0.10.21"></script>
+		<div style="position:absolute; bottom:2%; left:2%; z-index:1;">
+		<div style="position:absolute; bottom:10px; background-color:#ea2526; width:300px; height:40px;" class="border border-5 border-dark"></div>
+			<div style="position:absolute; left:5px; bottom:15px;background-color:#24e31c; width:290px; height:30px;" id="healthBar"></div>
+		</div>
+			
+			
+		<script type="module" src="index.js?version=0.11.21"></script>
+
+		<div class="damage-overlay" id="damageOverlay"></div>
+
+
 	</body>
 </html>
 
@@ -186,6 +226,7 @@
 0.10.19 merged tree mesh to try to increase performance, and moved sun closer to middle.
 0.10.20 merged stonebrick and oak plank mesh to increase performance.
 0.10.21 added more leaves to trees since combining them all does not decrease performance. made more trees.
+0.11.21 added health bar, added health mechanic, made it so that when a player gets hit, they teleport back to their position, to fix random teleporting bug. testing weapon damage. nerfs or buffs incoming. super 1 shots people, might be nerfed. added a damage overlay that shows up for 5/60 of a second.
  -->
 
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
