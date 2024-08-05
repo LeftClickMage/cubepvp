@@ -1201,7 +1201,7 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
     HTMLObj("score").innerHTML = "Score: " + player.score;
     HTMLObj("ammoLeft").innerHTML = player.ammo[player.gun];
     HTMLObj("healthBar").style.width = player.health/100*290 + "px";
-    HTMLObj("playerHealth").innerHTML = player.health;
+    HTMLObj("playerHealth").innerHTML = Math.round(player.health);
     HTMLObj("bulletPoolCount").innerHTML = "BulletPool: " + bulletPool.length;
    
     if(!runOnce){
