@@ -6,6 +6,8 @@
 		<meta name="viewport" content="width=device-width,initial-scale=1">
 		<link rel="stylesheet" href="fonts/ubuntu.css">
 		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="icon" href="assets/cubepvpIcon.png">
+
 		<style>
 			html, body {
 				font-family:Ubuntu;
@@ -29,13 +31,12 @@
 				top: 50%;
 				left: 50%;
 				transform:translate(-50%, -50%);
-				background-color: #FFFFFF;
 				display: flex;
 				justify-content: center;
 				align-items: center;
 				flex-direction: column;
 				z-index: 1000;
-				font-size:50px;
+				
         	}	
 			.damage-overlay {
 				position: fixed;
@@ -49,23 +50,10 @@
 				display:none;
         	}
 		</style>
-		<script>
-			document.onreadystatechange = function () {
-				if (document.readyState === 'complete') {
-					document.getElementById("loadingPage").style.visibility = 'hidden';
-					document.getElementById("loadingPage").style.display = 'none';
-				} else {
-					document.getElementById("loadingPage").style.visibility = 'visibile';
-					document.getElementById("loadingPage").style.display = 'flex';
-				}
-			}
-        document.addEventListener('contextmenu', function(event) {
-            event.preventDefault();
-        });
-		</script>
+		
 	</head>
 	<body>
-	<div id="loadingPage">LOADING...</div>
+	<div id="loadingPage" class="bg-dark"><span style="font-size:50px;" class="text-light">Loading Cube PVP</span><span style="font-size:20px;" class="text-light">Tip: <span id="tip"></span><span></div>
 		<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     	<script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
 		<script src="https://unpkg.com/@tweenjs/tween.js@^20.0.0/dist/tween.umd.js"></script>
@@ -77,12 +65,16 @@
 				}
 			}
 		</script>
-
-		<img src="assets/crosshair.png" width="25px" style="image-rendering: pixelated;position:absolute; left:52%; top:31%; transform:translate(-50%, 0%);" id="crosshair">
-    	<p style="position:absolute; left:100px; color:white; font-size:15px; z-index:1;" id="bulletPoolCount">BulletPool:</p>
-
-<p style="position:absolute; left:220px; color:white; font-size:25px; z-index:1;" id="highScore">HS:</p>
-<p style="position:absolute; left:350px; color:white; font-size:25px; z-index:1;" id="score">SCORE:</p>
+		<div id="titleScreen" style="position:absolute;width:100%; height:100%; background-color:rgba(0, 0, 0,0.7);">
+		<p style="font-weight:bold; font-size:100px; position:absolute; top:150px; left:50%; transform:translate(-50%, -50%);" class="text-light">Cube PVP</p>
+		<p class="text-light" style="font-size:25px; position:absolute; top:225px; left:50%; transform:translate(-50%, -50%);">A Multiplayer Game Developed by Ethan</p>
+			<p class="btn btn-dark border-5 border-light" style="position:absolute; top:325px; left:50%; transform:translate(-50%, -50%); font-size:30px; border-radius:15px; width:500px;" id="startGame">Start Game</p>
+			<p class="btn btn-dark border-5 border-light" style="position:absolute; top:410px; left:50%; transform:translate(-50%, -50%); font-size:30px; border-radius:15px; width:500px;" onclick="window.open('updatelog.html')">Update Log</p>
+		</div>
+		<div id="game" style="display:none;">
+		 
+			<img src="assets/crosshair.png" width="25px" style="image-rendering: pixelated;position:absolute; left:52%; top:31%; transform:translate(-50%, 0%);" id="crosshair">
+ 
 		<p style="position:absolute; top:50px; background-color:rgba(255, 255, 255, 0.5); font-family:Ubuntu; width:200px; height:350px; overflow:hidden; display:none;" id="consoleDiv">GAME CONSOLE: <br><input style="width:180px; margin-left:10px;" id="consoleInput" placeholder="Variable Name"><br><span id = "console"></span></p>
 
 		<div style="position:absolute; right:2%; top:2%; z-index:1;">
@@ -161,6 +153,10 @@
 		<div style="position:absolute; bottom:1%; left:1%; z-index:1;">
 		
 			<div style="display:none; margin-bottom:25px;" id="debugTools">
+			   	<p style="position:absolute; bottom:150px;left:100px; color:white; font-size:15px; z-index:1;" id="bulletPoolCount">BulletPool:</p>
+
+<p style="position:absolute; bottom:150px;left:220px; color:white; font-size:25px; z-index:1;" id="highScore">HS:</p>
+<p style="position:absolute; bottom:150px;left:350px; color:white; font-size:25px; z-index:1;" id="score">SCORE:</p>
 			<p id="switchConsole" class="btn btn-info border-dark border-5">CONSOLE</p>
 			<p id="switchAnim" class="btn btn-primary border-dark border-5">Anims ON</p>
 		<p id="switchShadow" class="btn btn-primary border-dark border-5">Shadows ON</p>
@@ -184,57 +180,39 @@
 		</div>
 			
 			
-		<script type="module" src="index.js?version=0.11.26"></script>
+		
 
 		<div class="damage-overlay" id="damageOverlay"></div>
+		</div>
 
 
+<script type="module" src="index.js?version=0.11.26"></script>
+<script>
+			var tipText = document.getElementById("tip");
+			var tips = [
+				"Did you know the Super 1 shots players?",
+				"You can jump over enemies without supering!",
+				"Pressing Q reloads your gun when needed!",
+				"Try lowering your graphics if your fps is low!",
+				"The Shotgun does a ton of damage up close!",
+				"You cannot dash while reloading!",
+				"You cannot shoot while dashing!",
+				"Jumping is a good way to dodge player attacks!",
+				"Dashing is faster than you think!",
+				"Jump to increase the range of your bullets!",
+				"Did you know aiming decreases your walk and look speed?",
+			];
+			var randomNumber = Math.round(Math.random()*(tips.length -1));
+			tipText.innerHTML = tips[randomNumber];
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+        });
+		</script>
 	</body>
+	
 </html>
 
 
-<!-- DEV LOG
-
-0.0.0, release with a ball and the player, 3rd person with Controls, and 1 platform
-0.0.1 release with another platform, and better jumping detection
-0.0.2 release with buggy dash for debug, and a 3d sprite, and enemy player, changed look controls
-0.0.3 release with walls, fixed dash, added control text, and more shadows, and changed shadow render type.
-0.1.3 release with higher walls 5->50, added cooldown for dash, added UI, added 4 guns, pistol, smg, ar, sniper, added bullets, added super, made enemies chase you. made 1 of the platforms the spawn platforn, enemies spawn randomly
-0.1.4 release with increase in jump height 11->13, added caps lock movement protection, added controls e = super
-0.2.4 release with grass, shaders to move grass. changed bullet size to smaller, and added a bullet pooling system to fix lag accumulation, changed ground color to match grass. added fps counter and bullet pool counter
-0.2.5 added high score counter
-0.3.5 added a platform for people to join, and moved the spawn platform. Made grass shorter, made it interactive. All meshes recieve and cast shadows. Added buttons to remove anims and shadows. Changed player color and made it more metalic. Moved light, Added meshes to all bodies. Made game more efficient. Reduced amount of grass to 80000, it as at 500k+ before. bullets now delete if they are moving slower than .25 units/s.
-0.3.6 buffed AR range, added shotgun, removed bug where grass had shadow when pressing on shadows on and off. changed sky color to blue
-0.3.7 fixed bug wit jumping midair. set vel of player to 0 when you die to prevent flying into the air.
-0.4.7 made it MULTIPLAYER! lots of bug fixes and stuff, added walls using crates (plan to change to wall texture), made a new area for enemies to spawn and players can practice pvp there. changed shotgun shot spread to be the same, changed super speed to 75. made it so players respawn if Y above 15 and Y below 10, and when killed by enemy. Bullets do not hurt people if they are not in the pvp box.
-0.5.7 added a crosshair, added controller support, added aiming, shrinked console.
-0.5.8 made you slower when aiming
-0.6.8 made console smaller. ADDED SHADOWS TO GRASS FINALLY!! added it so other players cause grass to stop moving. You can now change guns with numbers or LB/RB on controller. made it so current gun lights up button.
-0.6.9 made console even shorter to fit on smaller computers.
-0.7.9 ADDED 3D TEXT! Made players not be able to shoot unless they are in the playing field. remove the anims, and upgrade firerate button (only shown in development) Added a graphics button to switch from low to ultra high graphics. Added a controls button to show controls, and a console button to show console. made camera not clip into walls! crosshair is 0.5 opacity when in wall. Moved the "sun" higher up, to simulate midday. fixed a bug where buttons didnt work. Players now disappear when enterring the practice zone, this makes the practice zone separate for each player.. Added name tags that face the camera!
-0.7.10 fixed small bug with name tag
-0.7.11 fixed small bug with enemy spawning onthe top of spawn enemies now die when they are not in their box
-0.8.11 Added a player model, new model for each weapon, shooting and idle, and for dashing. can no longer shoot while dashing
-0.8.12 Hopeful patch to game crashing.
-0.8.13 silent patch to fix player mesh not dissapearing when entering practice mode
-0.9.13 Third Person Camera!! Added images for gun hotbar instead of words. Removed console from public access. Added aiming TWEENS. Fixed bug when not able to swap between guns when aiming. Crosshair is always in the center now. Player now moves in sync with camera.  
-0.10.13 Reloading system, added more icons to UI, added a stone texture, added a grass texture, new building style. fixed large bug when joining, still small joining lag though. fixed a bug where when you resize the window the game doesnt 
-0.10.14 removed grass texture to hopefully fix lag.
-0.10.15 removed big cobble building, added grass texture back.
-0.10.16 removed 2 normal walls, added it so that you nede ot be shooting to reload with 0 ammo
-0.10.17 fixed the addition that you nede to be shooting to reload gun. added more stone
-0.10.18 added more bullets to shotgun, added trees, made the size of the text fixed in the ammoLeft. removed 2 more walls.
-0.10.19 merged tree mesh to try to increase performance, and moved sun closer to middle.
-0.10.20 merged stonebrick and oak plank mesh to increase performance.
-0.10.21 added more leaves to trees since combining them all does not decrease performance. made more trees.
-0.11.21 added health bar, added health mechanic, made it so that when a player gets hit, they teleport back to their position, to fix random teleporting bug. testing weapon damage. nerfs or buffs incoming. super 1 shots people, might be nerfed. added a damage overlay that shows up for 5/60 of a second.
-0.11.22 buffed SMG from 10 -> 15, nerfed pistol from 45->35, nerfed shotgun from 30-> to 20. made it so when you get shot, your velocity stays the same.
-0.11.23 buffed ALL GUNS' damage by 5.
-0.11.24 nerfed shotgun damage from 25->15, made it so you cant take damage in playing field.
-0.11.25 added a number next to health bar
-0.11.26 rounded health number
-0.11.27 changed med to only have animations, and high to have shadows, and ultra high to have grass shadows. changed player spawning to VERY HIGH UP that way no glitches can occur midgame. players now spawn facing and near practice zone if they died by enemies. Enemies now have health. made spawn platform 1 mesh to increase fps, optimized all player models from 50 meshs to about 1-5 meshes.
- -->
 
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
 

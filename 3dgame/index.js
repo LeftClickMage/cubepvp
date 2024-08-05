@@ -49,7 +49,7 @@ var anim = true;
 var noFrictionMaterial = new CANNON.Material();
 var shadowsOn = true;
 var degreeToRadian = Math.PI/180;
-
+var gameStarted = false;
 
 
 
@@ -246,12 +246,85 @@ var platform = [
             position: new CANNON.Vec3(20, 6, 8)
         })
     },
+    {
+        mesh: new THREE.Mesh(
+            new THREE.BoxGeometry(20, 0.2, 10), 
+            new THREE.MeshStandardMaterial({ color: 0x000000})
+        ),
+        body: new CANNON.Body({
+            type: CANNON.Body.STATIC,
+            shape: new CANNON.Box(new CANNON.Vec3(10, 0.1, 5)),
+            material: noFrictionMaterial,
+            position: new CANNON.Vec3(44+10, 6.9, 20)
+        })
+    },
+
+    {
+        mesh: new THREE.Mesh(
+            new THREE.BoxGeometry(1, 0.2, 1), 
+            new THREE.MeshStandardMaterial({ color: 0x000000})
+        ),
+        body: new CANNON.Body({
+            type: CANNON.Body.STATIC,
+            shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.1, 0.5)),
+            material: noFrictionMaterial,
+            position: new CANNON.Vec3(34, 6.9, 20)
+        })
+    },
+    {
+        mesh: new THREE.Mesh(
+            new THREE.BoxGeometry(1, 0.2, 1), 
+            new THREE.MeshStandardMaterial({ color: 0x000000})
+        ),
+        body: new CANNON.Body({
+            type: CANNON.Body.STATIC,
+            shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.1, 0.5)),
+            material: noFrictionMaterial,
+            position: new CANNON.Vec3(34, 9, 16)
+        })
+    },
+    {
+        mesh: new THREE.Mesh(
+            new THREE.BoxGeometry(1, 0.2, 1), 
+            new THREE.MeshStandardMaterial({ color: 0x000000})
+        ),
+        body: new CANNON.Body({
+            type: CANNON.Body.STATIC,
+            shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.1, 0.5)),
+            material: noFrictionMaterial,
+            position: new CANNON.Vec3(34, 11, 12)
+        })
+    },
+
+    {
+        mesh: new THREE.Mesh(
+            new THREE.BoxGeometry(1, 0.2, 1), 
+            new THREE.MeshStandardMaterial({ color: 0x000000})
+        ),
+        body: new CANNON.Body({
+            type: CANNON.Body.STATIC,
+            shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.1, 0.5)),
+            material: noFrictionMaterial,
+            position: new CANNON.Vec3(34, 9, 16-28)
+        })
+    },
+    {
+        mesh: new THREE.Mesh(
+            new THREE.BoxGeometry(1, 0.2, 1), 
+            new THREE.MeshStandardMaterial({ color: 0x000000})
+        ),
+        body: new CANNON.Body({
+            type: CANNON.Body.STATIC,
+            shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.1, 0.5)),
+            material: noFrictionMaterial,
+            position: new CANNON.Vec3(34, 11, 12-28)
+        })
+    },
 ];
 platform.forEach((platform)=>{
     addToWorld(platform);
     platform.mesh.position.copy(platform.body.position);
 })
-
 
 
 var enemies = [];
@@ -390,7 +463,7 @@ loadPlayerModel({
 
 
 loadPlayerModel({
-    path: "assets/playerDashing.glb", 
+    path: "assets/playerDashing.gltf", 
     name: "playerDashing",
     size: 16,
 });
@@ -791,23 +864,60 @@ walls[7].mesh.quaternion.copy(walls[3].body.quaternion);
 
 var gameObjects = [];
 
+
 var sphere = {
-    mesh: new THREE.Mesh(
-        new THREE.SphereGeometry(0.5, 64, 64),
-        new THREE.MeshStandardMaterial({color: 0xffff00,}),
-    ), 
+    mesh: new THREE.Group(),
     body: new CANNON.Body({
         mass: 0,
-        shape: new CANNON.Sphere(0.5),
+        shape: new CANNON.Box(new CANNON.Vec3(0.1, 0.5, 0.5)),
         material: new CANNON.Material(),
-        position: new CANNON.Vec3(13, 0.5, -10), 
+        position: new CANNON.Vec3(62, 7.5, 20.5), 
         linearDamping: 0.3,
         angularDamping: 0.3,
     }),
 }
+sphere.body.addEventListener( "collide", async function (event) {
+        sphere.body.position.z = Math.random()*6-3+19.5;    
+});
+loadSprite(sphere.mesh, "assets/target.gltf", 16);
 addToWorld(sphere);
 gameObjects.push(sphere);
 
+var sphere1 = {
+    mesh: new THREE.Group(),
+    body: new CANNON.Body({
+        mass: 0,
+        shape: new CANNON.Box(new CANNON.Vec3(0.1, 0.5, 0.5)),
+        material: new CANNON.Material(),
+        position: new CANNON.Vec3(50, 7.5, 20.5), 
+        linearDamping: 0.3,
+        angularDamping: 0.3,
+    }),
+}
+loadSprite(sphere1.mesh, "assets/target.gltf", 16);
+sphere1.body.addEventListener( "collide", async function (event) {
+        sphere1.body.position.z = Math.random()*6-3+19.5;    
+});
+addToWorld(sphere1);
+gameObjects.push(sphere1);
+
+var sphere2 = {
+    mesh: new THREE.Group(),
+    body: new CANNON.Body({
+        mass: 0,
+        shape: new CANNON.Box(new CANNON.Vec3(0.1, 0.5, 0.5)),
+        material: new CANNON.Material(),
+        position: new CANNON.Vec3(56, 7.5, 20.5), 
+        linearDamping: 0.3,
+        angularDamping: 0.3,
+    }),
+}
+loadSprite(sphere2.mesh, "assets/target.gltf", 16);
+sphere2.body.addEventListener( "collide", async function (event) {
+        sphere2.body.position.z = Math.random()*6-3+19.5;    
+});
+addToWorld(sphere2);
+gameObjects.push(sphere2);
 
 
 
@@ -825,6 +935,8 @@ createTree(-10, -10);
 createTree(-10, 10);
 createTree(15, -4);
 createTree(10, 10);
+createTree(7, 5);
+createTree(0, -7);
 
 createTree(-15, 0);
 createTree(0, -15);
@@ -1160,8 +1272,13 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
     player.mesh.position.copy(player.body.position);
     player.mesh.quaternion.copy(player.body.quaternion);
 
-    setCameraPosition(3);
-
+    if(gameStarted){
+       setCameraPosition(3);
+    } else {
+        camera.position.y = 9;
+        camera.position.x = 15;
+        camera.lookAt(0, 3, 0);
+    }
 
     camera.aspect = window.innerWidth/window.innerHeight;
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1169,7 +1286,9 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
     renderGameObjects();
 
     checkForReloading();
-    checkForAiming();
+    if(gameStarted){
+        checkForAiming();
+    }
     if(damageOverlayTimer > 5){
         damageOverlayTimer = 0;
         showDamageOverlay = false;
@@ -1476,8 +1595,11 @@ HTMLObj("switchGrass").addEventListener("click", (e) => {
 addButtonListener("switchConsole", "consoleDiv", "inline-block");
 addButtonListener("switchControls", "controlsText", "inline-block");
 addButtonListener("weaponsInfo", "weaponsInfoText", "inline-block");
-
-
+HTMLObj("startGame").addEventListener("click", (e) => {
+    HTMLObj("titleScreen").style.display = "none";
+    HTMLObj("game").style.display = "";
+    gameStarted = true;
+});
 // document.getElementById('controlsText').style.display = 'flex';
 
 
@@ -2266,7 +2388,7 @@ async function killPlayer(){
 
 async function killEnemy(enemy){
     enemy.body.sleep();
-    enemy.health = 100;
+    enemy.health = 50;
     player.score += 50;
     enemy.body.position.set(Math.random() * 40 - 20+69, 5, Math.random() * 40 - 20);
     await downtime(1000);
@@ -2529,6 +2651,9 @@ addEventListener('keydown', function(event) {
     // alert(event.key)
     // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
     var key = event.key.toLowerCase();
+
+   if(gameStarted){
+     
     if(key == "arrowright"){
         keys.rightArrow = true;
     }
@@ -2586,6 +2711,7 @@ addEventListener('keydown', function(event) {
             keys.leftShift = true;
         }
     }
+   }
     
 });
 var gunNumber = 1;
@@ -2635,7 +2761,7 @@ addEventListener('keyup', function(event) {
 var pressSwapped = false;
 function checkForControllerInputs(){
     const controller = navigator.getGamepads()[0];
-    if(controller){
+    if(controller && gameStarted){
         const leftJoystickX = controller.axes[0]; 
         const leftJoystickY = controller.axes[1]; 
         const rightJoystickX = controller.axes[2]; 
@@ -2770,3 +2896,14 @@ function makeBackgroundRed(){
 function downtime(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+document.onreadystatechange = async function () {
+				if (document.readyState === 'complete') {
+                    await downtime(1500);
+					document.getElementById("loadingPage").style.visibility = 'hidden';
+					document.getElementById("loadingPage").style.display = 'none';
+				} else {
+					document.getElementById("loadingPage").style.visibility = 'visibile';
+					document.getElementById("loadingPage").style.display = 'flex';
+				}
+			}
