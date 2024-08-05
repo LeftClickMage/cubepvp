@@ -473,16 +473,16 @@ player.body.addEventListener( "collide", function (e) {
 function calcDamage(gun){
     switch (gun){
         case "pistol":
-            player.health -= 45;
+            player.health -= 35;
             break;
         case "smg":
-            player.health -= 10;
+            player.health -= 15;
             break;
         case "ar":
             player.health -= 25;
             break;
         case "shotgun":
-            player.health -= 30;
+            player.health -= 20;
             break;
         case "sniper":
             player.health -= 90;
@@ -1093,6 +1093,7 @@ var grassUpdateVal = 0;
 var bulletTimer = 0;
 var prevPlayerPosition;
 var prevPlayerQuaternion;
+var prevPlayerVelocity;
 var bulletDelay = 5;
 var showDamageOverlay = false;
 var damageOverlayTimer = 0;
@@ -1131,6 +1132,7 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
 
     prevPlayerPosition = new THREE.Vector3(player.body.position.x, player.body.position.y, player.body.position.z);
     prevPlayerQuaternion = new THREE.Quaternion().copy(player.body.quaternion);
+    prevPlayerVelocity = new THREE.Vector3(player.body.velocity.x, player.body.velocity.y, player.body.velocity.z);
     physicsWorld.step(1/60);
 
 
@@ -2220,9 +2222,8 @@ function shadows(value) {
 }
 
 async function hitPlayer(){
-    player.body.quaternion.copy(prevPlayerQuaternion);
     await downtime(0);
-    player.body.velocity.set(0, 0, 0);
+    player.body.velocity.copy(prevPlayerVelocity);
     // player.body.position.set(30, 7, 0); //0, 11, 0
     if(player.highScore < player.score){
         player.highScore = player.score;
