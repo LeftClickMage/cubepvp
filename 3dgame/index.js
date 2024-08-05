@@ -473,19 +473,19 @@ player.body.addEventListener( "collide", function (e) {
 function calcDamage(gun){
     switch (gun){
         case "pistol":
-            player.health -= 35;
+            player.health -= 40;
             break;
         case "smg":
-            player.health -= 15;
-            break;
-        case "ar":
-            player.health -= 25;
-            break;
-        case "shotgun":
             player.health -= 20;
             break;
+        case "ar":
+            player.health -= 30;
+            break;
+        case "shotgun":
+            player.health -= 25;
+            break;
         case "sniper":
-            player.health -= 90;
+            player.health -= 95;
             break;
         case "super":
             player.health -= 100;
