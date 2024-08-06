@@ -2808,9 +2808,9 @@ function checkForControllerInputs(){
         } else if(!buttonA){
             player.jumping = false;
         }
-        if(buttonA){
+        if(buttonX){
             keys.r = true;
-        } else if(!buttonA){
+        } else if(!buttonX){
             keys.r = false;
         }
         if(aimTrigger){
