@@ -16,7 +16,7 @@ var bulletID = 0;
 
 
 io.on('connection', (socket) => {
-    console.log('A player joined!' + socket.id);
+    // console.log('A player joined!' + socket.id);
     players[socket.id] = {
         position: {
             x: 30, 
@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
     io.emit('updatePlayers', players);
 
     socket.on("disconnect", (reason)=>{
-        console.log(reason);
+        // console.log(reason);
         delete players[socket.id];
         io.emit("updatePlayers", players);
     });
@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
             }
             bulletID++;
         } 
-        console.log(players[socket.id].bullets);
+        // console.log(players[socket.id].bullets);
     });
 
     socket.on("getCurrentBulletID", ()=>{
@@ -74,14 +74,14 @@ io.on('connection', (socket) => {
     socket.on("deleteBullets", ({id})=>{
         if(bulletsContainer[id]){
             delete bulletsContainer[id];
-            console.log("deleted " + id);
+            // console.log("deleted " + id);
 
         }
         // console.log("ran delete");
         
     });
 
-    console.log(players);
+    // console.log(players);
 
 });
 
