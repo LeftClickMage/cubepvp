@@ -863,7 +863,7 @@ walls[5].mesh.quaternion.copy(walls[1].body.quaternion);
 walls[7].mesh.quaternion.copy(walls[3].body.quaternion);
 
 var gameObjects = [];
-
+var trees = [];
 
 var sphere = {
     mesh: new THREE.Group(),
@@ -973,7 +973,7 @@ function createTree(x, z){
     tree.mesh.scale.set(5, 5, 5);
     loadSprite(tree.mesh, "assets/Tree.gltf", 0);
     addToWorld(tree);
-    gameObjects.push(tree);
+    trees.push(tree);
 }
 
 function createTower(x, z){
@@ -1218,6 +1218,8 @@ var bulletDelay = 5;
 var showDamageOverlay = false;
 var damageOverlayTimer = 0;
 //// GAME RENDER ////
+
+renderGameObjects();
 function renderGame() {
     
 player.mesh.children.forEach(child => player.mesh.remove(child));
@@ -1283,7 +1285,7 @@ player.mesh.children.forEach(child => player.mesh.remove(child));
     camera.aspect = window.innerWidth/window.innerHeight;
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.updateProjectionMatrix();
-    renderGameObjects();
+    
 
     checkForReloading();
     if(gameStarted){
@@ -1440,6 +1442,11 @@ HTMLObj("switchPerformance").addEventListener("click", (e) => {
     var currentGraphicsValue = HTMLObj("graphicsValue").innerHTML;
     if(currentGraphicsValue == "ULTRA HIGH"){
         currentGraphicsValue = "LOW";
+        trees.forEach((tree)=>{
+            tree.mesh.children.forEach(child => tree.mesh.remove(child));
+            loadSprite(tree.mesh, "assets/lowTree.gltf", 0);
+        });
+        renderGameObjects();
         grassShadows = false;
         grassShadowsChanger();
         shadowsOn = false;
@@ -1448,13 +1455,18 @@ HTMLObj("switchPerformance").addEventListener("click", (e) => {
         anim = false;
     } else if(currentGraphicsValue == "MED"){
         currentGraphicsValue = "HIGH";
-        
+         trees.forEach((tree)=>{
+            tree.mesh.children.forEach(child => tree.mesh.remove(child));
+            loadSprite(tree.mesh, "assets/Tree.gltf", 0);
+        });
+        renderGameObjects();
         shadowsOn = true;
         shadows(shadowsOn);
         grassShadows = false;
         grassShadowsChanger();
         grass.receiveShadow = false;
         anim = true;
+
     } else if(currentGraphicsValue == "LOW"){
         currentGraphicsValue = "MED";
         
@@ -1978,6 +1990,10 @@ function updateEnemyMovement(){
 //// PLAYER MOVEMENT ////
 function renderGameObjects(){
     gameObjects.forEach((object)=>{
+        object.mesh.position.copy(object.body.position);
+        object.mesh.quaternion.copy(object.body.quaternion);
+    })
+    trees.forEach((object)=>{
         object.mesh.position.copy(object.body.position);
         object.mesh.quaternion.copy(object.body.quaternion);
     })
