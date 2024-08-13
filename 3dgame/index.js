@@ -2838,16 +2838,20 @@ function checkForControllerInputs(){
         var deadZone = 0.25;
         if(leftJoystickX >= deadZone){
             keys.d = true;
+            keys.a = false;
         } else if(leftJoystickX <= -deadZone){
             keys.a = true;
+            keys.d = false;
         } else if(leftJoystickX < deadZone || leftJoystickX > -deadZone){
             keys.a = false;
             keys.d = false;
         }
         if(leftJoystickY >= deadZone){
             keys.s = true;
+            keys.w = false;
         } else if(leftJoystickY <= -deadZone){
             keys.w = true;
+            keys.s = false;
         } else if(leftJoystickY < deadZone || leftJoystickY > -deadZone){
             keys.s = false;
             keys.w = false;
